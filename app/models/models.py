@@ -168,3 +168,15 @@ class Offer_Scan(Base):
     scan_time = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
+    Hotel_Data = relationship("Hotel_Sign_up")
+    Offer_Data = relationship("Create_Offer")
+
+class Contact_Us(Base):
+    __tablename__ = "contact_us"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    budget = Column(String, nullable= True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))

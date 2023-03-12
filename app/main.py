@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database import engine
 from .routers import user_signup, auth, hotel_signup, hotel_auth, create_offer, create_event, admin_auth, admin_signup
-from .routers import category, create_menu, rating, favorite_hotel, get_hotel, offer_scan
+from .routers import category, create_menu, rating, favorite_hotel, get_hotel, offer_scan, contact_us
 from .models import models
 
 
@@ -29,3 +29,4 @@ app.include_router(rating.router)
 app.include_router(favorite_hotel.router)
 app.include_router(get_hotel.router)
 app.include_router(offer_scan.router)
+app.include_router(contact_us.router)

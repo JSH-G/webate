@@ -20,6 +20,15 @@ router= APIRouter(
     tags=['Offer Scan']
 )
 
+@router.get('/get_scan_offer', status_code=status.HTTP_200_OK, response_model=List[offer.ScanOffer])
+def get_scan_offer_by_hotel(db: Session = Depends(get_db),
+               current_user: int = Depends(oauth2.get_current_hotel)):
+    
+    scan_offer = db.query(models.Offer_Scan).filter(models.Offer_Scan.hotel_id == current_user.id).all()
+
+    return scan_offer
+
+
 @router.post('/offer_scan', status_code=status.HTTP_200_OK)
 def offer_scan(qr_number: str, user_id: str, offer_id: str, db: Session = Depends(get_db),
                current_user: int = Depends(oauth2.get_current_hotel)):
