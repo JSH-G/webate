@@ -2,6 +2,7 @@ from typing import List, Optional
 import uuid, os
 from datetime import time, date
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi.responses import JSONResponse
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
 import onesignal_sdk
@@ -75,5 +76,9 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
                         }
 
     else:
-        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Sorry you are not eligble to do this if you want to create then contact to admin")
+
+        return JSONResponse(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                            content={"status":False, "message":"Sorry you are not eligble to do this if you want to create then contact to admin"})
+
+        # raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Sorry you are not eligble to do this if you want to create then contact to admin")
     return responseDic

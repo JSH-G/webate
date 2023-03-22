@@ -1,5 +1,6 @@
 from typing import List, Optional
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi.responses import JSONResponse
 from app import oauth2
 import onesignal_sdk
 from app.database import  get_db
@@ -33,7 +34,11 @@ def create_menu(name: str = Form(...),price: str = Form(...),menu_image: UploadF
     check = db.query(models.Create_category).filter(models.Create_category.id == category_id).first()
 
     if not check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This Id is not exist")
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This Id is not exist"})
+    
+
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This Id is not exist")
 
     new_menu: models.CreateMenu = models.CreateMenu()
     new_menu.menu_name = name
@@ -74,11 +79,17 @@ def update_menu(menu_id : str, update: menu.MenuUpdate ,db: Session = Depends(ge
     check = updte.first()
 
     if not check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This menu not exist")
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This menu not exist"})
+
     
     check_category_id = db.query(models.Create_category).filter(models.Create_category.id == update.category_id).first()
     if not check_category_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This category is not found")
+
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This category is not found"})
+    
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
@@ -92,13 +103,19 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
     check = dell.first()
 
     if not check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This offer not exist")
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message": "This offer not exist"})
+    
+
     
     user_check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
                                                       models.CreateMenu.id == menu_id).first()
     
     if not user_check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="You can't able to performed this action") 
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"You can't able to performed this action"})
+    
 
     dell.delete(synchronize_session=False)
     db.commit()

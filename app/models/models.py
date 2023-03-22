@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.orm import relationship
 from ..database import Base
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, String, Boolean, func, DateTime, Time, Date, Integer
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, String, Boolean, func, DateTime, Time, Date, Numeric, Float
 from sqlalchemy.sql.expression import  text
 
 
@@ -76,8 +76,8 @@ class Create_Offer(Base):
     qr_number = Column(String, nullable=True)
     qr_image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/a@a_com.jpg')
     offer_image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/a@a_com.jpg')
-    opening = Column(String, nullable=True,server_default='---')
-    closing = Column(String, nullable=True,server_default='---')
+    opening = Column(DateTime, nullable=True)
+    closing = Column(DateTime, nullable=True)
     discription = Column(String, nullable=True)
     discount = Column(String, nullable=True)
     hotel_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete="CASCADE"), default=uuid.uuid4)
@@ -141,7 +141,7 @@ class Rating(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     hotel_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete="CASCADE"), default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("user_signup.id", ondelete="CASCADE"), default=uuid.uuid4)
-    rating = Column(Integer, nullable=True)
+    rating = Column(Float, nullable=True)
     comment = Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 

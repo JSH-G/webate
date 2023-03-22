@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from fastapi.responses import JSONResponse
 from app import oauth2
 import onesignal_sdk
 from app.database import  get_db
@@ -48,7 +49,6 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
     check = new_admin.login_type.lower()
     new_admin.login_type = check
     new_admin.pre_process()
-    
 
     add_admin = models.Admin_Sign_Up(otp = otp_update, **new_admin.dict())
     db.add(add_admin)
@@ -67,7 +67,15 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
     fm = FastMail(conf)
     await fm.send_message(message)
 
-    return new_admin
+    new_data = {
+        'access_token':  oauth2.create_access_token(data={"user_id": add_admin.id}),
+        'id': add_admin.id,
+        'name': add_admin.name,
+        'email': add_admin.email
+    }
+
+    return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
+
 
 @router.post('/email_verification_admin', status_code=status.HTTP_200_OK)
 def email_verification_admin(otp: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
@@ -76,9 +84,12 @@ def email_verification_admin(otp: str, db: Session = Depends(get_db), current_us
         current_user.is_verify = True
         db.commit()
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":f"this otp: {otp} is not correct"})
+
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
     
-    return {"Status": "Successfully Verify"}
+    return {'status': True, 'message': "Your email successfuly"}
 
 @router.put("/profile_image",status_code=status.HTTP_200_OK)
 async def image_url(file: UploadFile, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):

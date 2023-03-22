@@ -27,4 +27,4 @@ def contact_us(add: contact_us.Contact, db: Session = Depends(get_db)):
     db.add(db_rating)
     db.commit()
     db.refresh(db_rating)
-    return db_rating
+    return {"status":True,"message":"success","body":db_rating}

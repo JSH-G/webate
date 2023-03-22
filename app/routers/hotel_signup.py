@@ -1,6 +1,7 @@
 from typing import List, Optional
 import uuid, os
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi.responses import JSONResponse
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
 import onesignal_sdk
@@ -83,7 +84,22 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
     fm = FastMail(conf)
     await fm.send_message(message)
 
-    return new_hotel
+    new_data = {
+        'access_token':  oauth2.create_access_token(data={"user_id": new_hotel.id}),
+        'id': new_hotel.id,
+        'name': new_hotel.name,
+        'email': new_hotel.email,
+        'discription':new_hotel.discription,
+        'phone_number':new_hotel.phone_number,
+        'postal_code':new_hotel.postal_code,
+        'longitude':new_hotel.longitude,
+        'latitude':new_hotel.latitude,
+        'hotel_image_url':new_hotel.hotel_image_url,
+        'logo_image_url':new_hotel.logo_image_url
+    }
+
+    return {"status": True, "message": "Successfully Hotel Added" ,"body": new_data}
+
 
 @router.post('/email_verification_hotel', status_code=status.HTTP_200_OK)
 def email_verification_hotel(otp: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -92,9 +108,12 @@ def email_verification_hotel(otp: str, db: Session = Depends(get_db), current_us
         current_user.is_verify = True
         db.commit()
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":f"This otp: {otp} is not correct"})
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
     
-    return {"Status": "Successfully Verify"}
+    return {"status": True , "message":"Successfully Verify"}
 
 @router.put('/forget_password', status_code=status.HTTP_200_OK)
 async def forget_password(pss: user.SendEmail, db: Session = Depends(get_db)):
@@ -120,11 +139,15 @@ async def forget_password(pss: user.SendEmail, db: Session = Depends(get_db)):
         db.commit()
 
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This email is not found')
-    
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This email is not found"})
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This email is not found')
+    otp_data  = {
+        'otp': ok
+    }
 
     
-    return {'Status': f'Your otp = {ok}'}
+    return {'status': True, 'message': "Success", 'body': otp_data}
 
 @router.put('/update_hotel_password', status_code=status.HTTP_200_OK)
 def update_hotel_password(email: str, pss: user.UpdatePassword, db: Session = Depends(get_db)):
@@ -140,6 +163,11 @@ def update_hotel_password(email: str, pss: user.UpdatePassword, db: Session = De
         db.commit()
 
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This email is not found')
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This email is not found"})
     
-    return {'Status': 'Your password updated successfuly'}
+
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This email is not found')
+    
+    return {'status': True ,'message':'Your password updated successfuly'}

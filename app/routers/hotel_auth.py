@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Body
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.models import models
 from app.database import get_db
@@ -23,10 +24,15 @@ def login_hotel(device_token: str = Body(None), user_credentials: OAuth2Password
     up_pass = user.first()
 
     if up_pass == None:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not found Credential')
+
+
+        return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
+                            content={"status":False, "message":"Not found Credential"})
 
     if not utils.verify(user_credentials.password, up_pass.password):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not efound Credential")
+
+        return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
+                            content={"status":False, "message":"Not found Credential"})
 
     acees_token = oauth2.create_access_token(data={"user_id": up_pass.id})
     

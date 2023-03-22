@@ -2,6 +2,7 @@ from typing import List, Optional
 import uuid, os
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from fastapi.responses import JSONResponse
 from app import oauth2
 import onesignal_sdk
 from app.database import  get_db
@@ -23,13 +24,16 @@ router= APIRouter(
 def get_all_hotel_admin(db: Session = Depends(get_db)):
     hotels = db.query(models.Hotel_Sign_up).all()
 
+    if not hotels:
+        return  JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                             content={"status":False, "message": "sorry hotel not found "})
+
     response = []
     for hotel in hotels:
         ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         respons = {
-            'status': "true",
             'id': hotel.id,
             'hotel_name': hotel.name,
             'hotel_discription': hotel.discription,
@@ -40,5 +44,5 @@ def get_all_hotel_admin(db: Session = Depends(get_db)):
         }
         response.append(respons)
 
-    return response
+    return {'status': "true","message":"success","body":response}
 

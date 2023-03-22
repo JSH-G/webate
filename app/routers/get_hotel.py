@@ -1,13 +1,16 @@
 from typing import List, Optional
-import uuid, os
+from io import BytesIO
+from PIL import Image
+import uuid, os, qrcode
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi.responses import JSONResponse
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
 import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
 import boto3, datetime, string, random
-from datetime import datetime
+from datetime import datetime, date
 from app import oauth2, config
 from app.models import models
 from app.schemas import offer, menu, event, favorite
@@ -41,59 +44,168 @@ def get_all_hotel(db: Session = Depends(get_db)):
         }
         response.append(respons)
 
-    return response
+    return {"status": True,"message":"Success","body":response}
 
-@router.get('/get_resturant_offer', status_code=status.HTTP_200_OK, response_model=List[offer.OfferOut])
+
+
+@router.get('/get_resturant_offer', status_code=status.HTTP_200_OK)
 def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
 
     check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).all()
 
-    return check
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This id is not exist"})
+    
+    resp = []
+    for test in check:
+        usermodel = db.query(models.Create_Offer).filter(models.Create_Offer.id == test.id).first()
 
-@router.get('/get_one_offer', status_code=status.HTTP_200_OK, response_model=offer.OfferOutSingel)
-def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
+        chheckk = usermodel.closing  - datetime.utcnow()
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry this hotel have no offer"})
+        offer_data = {
+            'id': usermodel.id,
+            'name': usermodel.name,
+            'offer_on': usermodel.offer_on,
+            'closing': usermodel.closing,
+            'discription': usermodel.discription,
+            'offer_image': usermodel.offer_image,
+            'discount': usermodel.discount,
+            'end_date': str(chheckk) ,
+            'is_unlimited': usermodel.is_unlimited,
+            'created_at': usermodel.created_at,
+        }
+        resp.append(offer_data)
 
-    check = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id).first()
-
-    return check
+    return {"status": True, "message": "Success" ,"body": resp}
 
 
-@router.get('/get_resturant_menu', status_code=status.HTTP_200_OK, response_model=List[menu.MenuOut])
+# @router.get('/get_one_offer', status_code=status.HTTP_200_OK)
+# def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
+
+#     check = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id).first()
+
+#     if not check:
+#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": "sorry this hotel have no offer"})
+    
+#     chheckk = check.closing  - datetime.utcnow()
+        
+#     offer_data = {
+#             'id': check.id,
+#             'name': check.name,
+#             'offer_on': check.offer_on,
+#             'closing': check.closing,
+#             'discription': check.discription,
+#             'offer_image': check.offer_image,
+#             'discount': check.discount,
+#             'end_date': str(chheckk) ,
+#             'is_unlimited': check.is_unlimited,
+#             'created_at': check.created_at,
+#         }
+
+#     return {"status": True, "message": "Success" ,"body": offer_data}
+
+
+@router.get('/get_resturant_menu', status_code=status.HTTP_200_OK)
 def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(get_db)):
 
     check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
                                                models.CreateMenu.category_id == category_id).all()
     if not check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sorry this menu is not added yet")
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"Sorry this menu is not added yet"})
+    
+    resp = []
+    for test in check:
+        usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry this hotel have no menu"})
+        usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
+        offer_data = {
+            'menu_name': usermodel.menu_name,
+            'menu_image': usermodel.menu_image,
+            'price': usermodel.price,
+            'discription': usermodel.discription,
+            'category_name': usermodel1.category_name,
+            'category_image': usermodel1.category_image
+        }
+    
+        resp.append(offer_data)
 
-    return check
+    return {"status": True, "message": "Success" ,"body": resp}
+    
 
-@router.get('/get_one_menu', status_code=status.HTTP_200_OK, response_model=menu.MenuOutSingel)
-def get_one_menu(menu_id: str, db: Session = Depends(get_db)):
 
-    check = db.query(models.CreateMenu).filter(models.CreateMenu.id == menu_id).first()
-
-    return check
-
-@router.get('/get_resturant_event', status_code=status.HTTP_200_OK, response_model=List[event.EventOut])
+@router.get('/get_resturant_event', status_code=status.HTTP_200_OK)
 def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
     check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).all()
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This id is not exist"})
+    
+    resp = []
+    for test in check:
+        usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry this hotel have no event"})
+        offer_data = {
+            'event_name': usermodel.event_name,
+            'event_time': usermodel.event_time,
+            'event_end_time': usermodel.event_end_time,
+            'event_image_vedio': usermodel.event_image_vedio,
+            'event_date': usermodel.event_date,
+            'event_discription': usermodel.discription,
+            'is_active': usermodel.is_active
+   
+        }
+    
+        resp.append(offer_data)
 
-    return check
+    return {"status": True, "message": "Success" ,"body": resp}
 
-@router.get('/get_one_event', status_code=status.HTTP_200_OK, response_model=event.EventOut)
-def get_one_event(event_id: str, db: Session = Depends(get_db)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.id == event_id).first()
 
-    return check
+# @router.get('/get_one_event', status_code=status.HTTP_200_OK, response_model=event.EventOut)
+# def get_one_event(event_id: str, db: Session = Depends(get_db)):
+
+#     check = db.query(models.Create_Event).filter(models.Create_Event.id == event_id).first()
+
+#     if not check:
+#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": "This id is not exist"})
+
+#     return check
 
 
 @router.get('/get_all_category', status_code=status.HTTP_200_OK)
 def get_category(db: Session = Depends(get_db)):
     check = db.query(models.Create_category).all()
-    return check
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This id is not exist"})
+    resp = []
+    for test in check:
+        usermodel = db.query(models.Create_category).filter(models.Create_category.id == test.id).first()
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry this hotel have no event"})
+        offer_data = {
+            'id': usermodel.id,
+            'category_name': usermodel.category_name,
+            'category_image': usermodel.category_image,
+            'created_at': usermodel.created_at,
+        }
+    
+        resp.append(offer_data)
+
+    return {"status": True, "message": "Success" ,"body": resp}
+
 
 @router.get('/get_favorite_hotel', status_code=status.HTTP_200_OK)
 def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -120,3 +232,28 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
 
     return response
 
+
+@router.get("/get_offer", status_code=status.HTTP_200_OK)
+def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_current_user) ):
+
+    res = {
+        "user": str(current_user.id),
+            "offer_id": offer_id
+              }
+    # data = [str(current_user.id),offer_id]
+    data = res
+
+    data = str(data)
+    qr = qrcode.QRCode(version=1, box_size=5, border=5)
+
+    qr.add_data(data)
+
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    image_bytes = buffer.getvalue()
+
+    return Response(content= image_bytes, media_type="image/png")

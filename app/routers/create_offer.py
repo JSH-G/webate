@@ -1,8 +1,10 @@
 from typing import List, Optional
 import uuid, os
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi.responses import JSONResponse
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
+from datetime import date
 import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
@@ -33,7 +35,7 @@ client_s3 = boto3.resource(
 
 @router.post('/create_offer', status_code=status.HTTP_200_OK)
 def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str = Form(...),qr_image: UploadFile = File(...),offer_image: UploadFile = File(...),
-                 opening: str = Form(...),closing: str = Form(...),discription: str = Form(...),discount: str = Form(...),is_unlimited: bool = Form(...),
+                 opening: datetime = Form(...),closing: datetime = Form(...),discription: str = Form(...),discount: str = Form(...),is_unlimited: bool = Form(...),
                  db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
     
@@ -64,7 +66,7 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str 
     db.commit()
     db.refresh(new_offer)
 
-    responseDic = {'status': True, 'message' : 'offer_created', 
+    responseDic = {
                         'id': new_offer.id,
                         'name_offer': new_offer.name,
                         'offer_on': new_offer.offer_on,
@@ -80,7 +82,7 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str 
                         'hotel_image': current_user.hotel_image_url
                         }
 
-    return responseDic
+    return {"status": True,"message":"Successfully Created Offer","body":responseDic}
 
 @router.put('/update_offer', status_code=status.HTTP_200_OK)
 def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -89,11 +91,14 @@ def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depend
     check = updte.first()
 
     if not check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This offer not exist")
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+    
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"Status": "Successfully update ofer"}
+    return {"status":True ,"message":"Successfully update ofer"}
 
 @router.delete('/delete_offer', status_code=status.HTTP_200_OK)
 def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -103,17 +108,20 @@ def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int 
     check = dell.first()
 
     if not check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This offer not exist")
-    
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+        
     user_check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id,
                                                       models.Create_Offer.id == offer_id).first()
     
     if not user_check:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="You can't able to performed this action") 
-
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"You can't able to performed this action"})
+    
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"Status": "Successfully deleted the offer"}
+    return {"status":True ,"message":"Successfully deleted the offer"}
 
 

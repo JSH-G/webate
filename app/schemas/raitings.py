@@ -3,7 +3,7 @@ import uuid
 from typing import Optional
 
 class RatingBase(BaseModel):
-    rating: int
+    rating: float
     hotel_id: Optional[uuid.UUID]
     comment: Optional[str] = None
 
@@ -18,13 +18,15 @@ class UserDetail(BaseModel):
         orm_mode = True
 
 class Raiting(BaseModel):
+    status: bool = True
+    message : str = "Successffully add review"
     Raiting_Review: HotelDetail
     Owner_Name: UserDetail
-    rating: int
+    rating: float
     comment: Optional[str] = None
     class Config:
         orm_mode = True
 
 class UpdateRaiting(BaseModel):
-    rating: int
+    rating: float
     comment: Optional[str] = None

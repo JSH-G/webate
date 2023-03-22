@@ -40,4 +40,4 @@ def add_category(category_name: str = Form(...), image: UploadFile = File(...), 
     db.commit()
     db.refresh(add_new)
 
-    return add_new
+    return {"status":True,"message":"success","body":add_new}
