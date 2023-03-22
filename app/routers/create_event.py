@@ -12,7 +12,7 @@ import boto3, datetime, string, random
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
-from app.schemas import offer
+from app.schemas import event
 from app import utils
 import requests
 from twilio.rest import Client
@@ -80,5 +80,43 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
         return JSONResponse(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             content={"status":False, "message":"Sorry you are not eligble to do this if you want to create then contact to admin"})
 
-        # raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Sorry you are not eligble to do this if you want to create then contact to admin")
     return responseDic
+
+@router.put('/update_event', status_code=status.HTTP_200_OK)
+def update_event(event_id : str, update: event.EventOut ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+    
+    updte = db.query(models.Create_Event).filter(models.Create_Event.id == event_id)
+    check = updte.first()
+
+    if not check:
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+    
+    updte.update(update.dict(), synchronize_session=False)
+    db.commit()
+    return {"status":True ,"message":"Successfully update ofer"}
+
+
+@router.delete('/delete_event', status_code=status.HTTP_200_OK)
+def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+
+    dell = db.query(models.Create_Event).filter(models.Create_Event.id == event_id)
+    check = dell.first()
+
+    if not check:
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+        
+    user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
+                                                      models.Create_Event.id == event_id).first()
+    
+    if not user_check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"You can't able to performed this action"})
+    
+    dell.delete(synchronize_session=False)
+    db.commit()
+
+    return {"status":True ,"message":"Successfully deleted the offer"}

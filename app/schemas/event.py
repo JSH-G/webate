@@ -6,9 +6,8 @@ class EventOut(BaseModel):
     event_name: str
     event_time: time
     event_end_time: time
-    event_image_vedio: str
+    discription: str
+    longitude: str
+    latitude: str
     event_date: date
     is_active: bool
-    
-    class Config:
-        orm_mode = True
