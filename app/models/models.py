@@ -73,8 +73,6 @@ class Create_Offer(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=True)
     offer_on = Column(String, nullable=True)
-    qr_number = Column(String, nullable=True)
-    qr_image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/a@a_com.jpg')
     offer_image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/a@a_com.jpg')
     opening = Column(DateTime, nullable=True)
     closing = Column(DateTime, nullable=True)

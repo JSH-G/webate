@@ -34,8 +34,9 @@ client_s3 = boto3.resource(
 
 
 @router.post('/create_offer', status_code=status.HTTP_200_OK)
-def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str = Form(...),qr_image: UploadFile = File(...),offer_image: UploadFile = File(...),
-                 opening: datetime = Form(...),closing: datetime = Form(...),discription: str = Form(...),discount: str = Form(...),is_unlimited: bool = Form(...),
+def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: UploadFile = File(...),
+                 opening: datetime = Form(...),closing: datetime = Form(...),discription: str = Form(...),
+                 discount: str = Form(...),is_unlimited: bool = Form(...),
                  db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
     
@@ -43,7 +44,6 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str 
     new_offer: models.Create_Offer = models.Create_Offer()
     new_offer.name = name
     new_offer.offer_on = offer_on
-    new_offer.qr_number = qr_number
     new_offer.opening = opening
     new_offer.closing = closing
     new_offer.discription = discription
@@ -53,11 +53,6 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str 
 
     bucket = client_s3.Bucket(S3_BUCKET_NAME)
     noow = str(datetime.now())
-    bucket.upload_fileobj(qr_image.file, f"{noow}{qr_image.filename}")
-    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{qr_image.filename}"
-    new_offer.qr_image = upload_url
-
-
     bucket.upload_fileobj(offer_image.file, f"{noow}{offer_image.filename}")
     upload_url_logo = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{offer_image.filename}"
     new_offer.offer_image = upload_url_logo
@@ -70,8 +65,6 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),qr_number: str 
                         'id': new_offer.id,
                         'name_offer': new_offer.name,
                         'offer_on': new_offer.offer_on,
-                        'qr_number': new_offer.qr_number,
-                        'qr_image': new_offer.qr_image,
                         'offer_image': new_offer.offer_image,
                         'opening': new_offer.opening,
                         'closing': new_offer.closing,
