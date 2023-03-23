@@ -55,7 +55,7 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This id is not exist"})
+                            content={"status": False, "message": "This hotel not exist"})
     
     resp = []
     for test in check:
