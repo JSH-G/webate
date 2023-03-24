@@ -85,10 +85,12 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
     await fm.send_message(message)
 
     new_data = {
+        'token_type': 'bearer',
         'access_token':  oauth2.create_access_token(data={"user_id": new_hotel.id}),
         'id': new_hotel.id,
         'name': new_hotel.name,
         'email': new_hotel.email,
+        'otp': new_hotel.otp,
         'discription':new_hotel.discription,
         'phone_number':new_hotel.phone_number,
         'postal_code':new_hotel.postal_code,
@@ -111,7 +113,6 @@ def email_verification_hotel(otp: str, db: Session = Depends(get_db), current_us
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":f"This otp: {otp} is not correct"})
-        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
     
     return {"status": True , "message":"Successfully Verify"}
 
@@ -141,7 +142,6 @@ async def forget_password(pss: user.SendEmail, db: Session = Depends(get_db)):
     else:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This email is not found"})
-        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This email is not found')
     otp_data  = {
         'otp': ok
     }
@@ -168,6 +168,26 @@ def update_hotel_password(email: str, pss: user.UpdatePassword, db: Session = De
                             content={"status":False, "message":"This email is not found"})
     
 
-        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This email is not found')
     
     return {'status': True ,'message':'Your password updated successfuly'}
+
+@router.put('/change_password_hotel', status_code=status.HTTP_200_OK)
+def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+
+    check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == current_user.id)
+
+    check_pass = check.first()
+
+    if check_pass:
+        hash_password = utils.hash(pss.password)
+        pss.password = hash_password
+        check.update(pss.dict(), synchronize_session=False)
+        db.commit()
+
+    else:
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"you are not able to perform this action"})
+    
+
+    return {'status': True, 'message': "Your password change successfuly"}

@@ -61,10 +61,12 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
     await fm.send_message(message)
 
     new_data = {
+        'token_type': 'bearer',
         'access_token':  oauth2.create_access_token(data={"user_id": add_user.id}),
         'id': add_user.id,
         'name': add_user.name,
-        'email': add_user.email
+        'email': add_user.email,
+        'otp': otp_update
     }
 
     return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
@@ -138,3 +140,25 @@ def update_user_password(email: str, pss: user.UpdatePassword, db: Session = Dep
     
 
     return {'status': True, 'message': "Your password updated successfuly"}
+
+
+@router.put('/change_password', status_code=status.HTTP_200_OK)
+def change_password(pss: user.UpdatePassword, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    check = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.id == current_user.id)
+
+    check_pass = check.first()
+
+    if check_pass:
+        hash_password = utils.hash(pss.password)
+        pss.password = hash_password
+        check.update(pss.dict(), synchronize_session=False)
+        db.commit()
+
+    else:
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"you are not able to perform this action"})
+    
+
+    return {'status': True, 'message': "Your password change successfuly"}

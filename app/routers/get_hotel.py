@@ -1,6 +1,7 @@
 from typing import List, Optional
 from io import BytesIO
 from PIL import Image
+import pytz
 import uuid, os, qrcode
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
 from fastapi.responses import JSONResponse
@@ -48,23 +49,28 @@ def get_all_hotel(db: Session = Depends(get_db)):
 
 
 
+
+
 @router.get('/get_resturant_offer', status_code=status.HTTP_200_OK)
 def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
-
     check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).all()
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This hotel not exist"})
-    
-    resp = []
-    for test in check:
-        usermodel = db.query(models.Create_Offer).filter(models.Create_Offer.id == test.id).first()
+                            content={"status": False, "message": "This hotel does not exist"})
 
-        chheckk = usermodel.closing  - datetime.utcnow()
+    resp = []
+    for usermodel in check:
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no offer"})
+                            content={"status": False, "message": "Sorry, this hotel has no offer"})
+        tz = pytz.timezone('Europe/Athens')
+        remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
+        days, seconds = divmod(remaining_time.seconds, 86400)
+        hours, seconds = divmod(seconds, 3600)
+        minutes, seconds = divmod(seconds, 60)
+        remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+
         offer_data = {
             'id': usermodel.id,
             'name': usermodel.name,
@@ -73,14 +79,13 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
             'discription': usermodel.discription,
             'offer_image': usermodel.offer_image,
             'discount': usermodel.discount,
-            'end_date': str(chheckk) ,
+            'end_date': remaining_time_str,
             'is_unlimited': usermodel.is_unlimited,
             'created_at': usermodel.created_at,
         }
         resp.append(offer_data)
 
     return {"status": True, "message": "Success" ,"body": resp}
-
 
 # @router.get('/get_one_offer', status_code=status.HTTP_200_OK)
 # def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
@@ -160,6 +165,8 @@ def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
             'event_end_time': usermodel.event_end_time,
             'event_image_vedio': usermodel.event_image_vedio,
             'event_date': usermodel.event_date,
+            'longitude':usermodel.longitude,
+            'latitude':usermodel.latitude,
             'event_discription': usermodel.discription,
             'is_active': usermodel.is_active
    

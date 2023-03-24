@@ -13,7 +13,7 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Wellcome to Baccvs api please write end of code /docs"}
+    return {"message": "Wellcome to We-Bate api please write end of code /docs"}
 
 app.include_router(user_signup.router)
 app.include_router(auth.router)

@@ -10,7 +10,7 @@ import boto3, datetime, string, random
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
-from app.schemas import admin
+from app.schemas import admin, user
 from app import utils
 import requests
 from twilio.rest import Client
@@ -68,10 +68,12 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
     await fm.send_message(message)
 
     new_data = {
+        'token_type': 'bearer',
         'access_token':  oauth2.create_access_token(data={"user_id": add_admin.id}),
         'id': add_admin.id,
         'name': add_admin.name,
-        'email': add_admin.email
+        'email': add_admin.email,
+        'otp': otp_update
     }
 
     return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
@@ -104,3 +106,40 @@ async def image_url(file: UploadFile, db: Session = Depends(get_db), current_use
     db.commit()
         
     return {"Message": upload_url}
+
+@router.put('/change_password_admin', status_code=status.HTTP_200_OK)
+def change_password_admin(pss: user.UpdatePassword, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
+
+    check = db.query(models.Admin_Sign_Up).filter(models.Admin_Sign_Up.id == current_user.id)
+
+    check_pass = check.first()
+
+    if check_pass:
+        hash_password = utils.hash(pss.password)
+        pss.password = hash_password
+        check.update(pss.dict(), synchronize_session=False)
+        db.commit()
+
+    else:
+
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"you are not able to perform this action"})
+    
+
+    return {'status': True, 'message': "Your password change successfuly"}
+
+
+@router.post('/upgrade_hotel', status_code=status.HTTP_200_OK)
+def upgrade_hotel(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
+
+    attentication = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id).first()
+
+    if attentication:
+        attentication.is_pro = True
+        db.commit()
+    
+    else:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, 
+            content={"status": False, "message": f"this user_id {hotel_id} is not exist"})
+        
+    return {"status": True , "message":"acoount is updated successfully"}
