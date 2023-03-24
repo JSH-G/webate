@@ -24,15 +24,16 @@ def login_hotel(device_token: str = Body(None), user_credentials: OAuth2Password
     up_pass = user.first()
 
     if up_pass == None:
-
-
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
                             content={"status":False, "message":"Not found Credential"})
 
     if not utils.verify(user_credentials.password, up_pass.password):
-
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
                             content={"status":False, "message":"Not found Credential"})
+    
+    # if not up_pass.is_verify == True:
+    #     return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
+    #                         content={"status":False, "message": "please verify your email"})
 
     acees_token = oauth2.create_access_token(data={"user_id": up_pass.id})
     
