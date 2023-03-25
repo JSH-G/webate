@@ -97,7 +97,8 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
         'longitude':new_hotel.longitude,
         'latitude':new_hotel.latitude,
         'hotel_image_url':new_hotel.hotel_image_url,
-        'logo_image_url':new_hotel.logo_image_url
+        'logo_image_url':new_hotel.logo_image_url,
+        'device_token': new_hotel.device_token,
     }
 
     return {"status": True, "message": "Successfully Hotel Added" ,"body": new_data}

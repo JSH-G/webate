@@ -73,7 +73,8 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
         'id': add_admin.id,
         'name': add_admin.name,
         'email': add_admin.email,
-        'otp': otp_update
+        'otp': otp_update,
+        'device_token': add_admin.device_token,
     }
 
     return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
