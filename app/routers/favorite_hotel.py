@@ -15,10 +15,11 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
                 current_user: int = Depends(oauth2.get_current_user)):
 
     post = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == like.hotel_id).first()
+    
     if not post:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":f"This id{like.hotel_id} does not Exist"})
+                            content={"status":False, "message":f"This id {like.hotel_id} does not Exist"})
         
     like_qurey = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == like.hotel_id,
                                                  models.Favorite_Hotel.user_id == current_user.id)

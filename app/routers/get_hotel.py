@@ -23,6 +23,29 @@ router= APIRouter(
     tags=['User Side Hotel']
 )
 
+@router.get('/get_hotel_info', status_code=status.HTTP_200_OK)
+def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
+    hotel = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id).first()
+
+
+    ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
+    rating_total = sum(rating.rating for rating in ratings) if ratings else 0
+    rating_average = rating_total / len(ratings) if ratings else 0
+    respons = {
+            'id': hotel.id,
+            'hotel_name': hotel.name,
+            'hotel_discription': hotel.discription,
+            'longitude': hotel.longitude,
+            'latitude':hotel.latitude,
+            'phone_number': hotel.phone_number,
+            'hotel_pic': hotel.hotel_image_url,
+            'hotel_logo': hotel.logo_image_url,
+            'rating_total': rating_total,
+            'rating_average': round(rating_average, 2)
+        }
+
+    return {"status": True,"message":"Success","body":respons}
+
 
 @router.get('/get_all_hotel', status_code=status.HTTP_200_OK)
 def get_all_hotel(db: Session = Depends(get_db)):
@@ -34,10 +57,12 @@ def get_all_hotel(db: Session = Depends(get_db)):
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         respons = {
-            'status': "true",
             'id': hotel.id,
             'hotel_name': hotel.name,
             'hotel_discription': hotel.discription,
+            'longitude': hotel.longitude,
+            'latitude':hotel.latitude,
+            'phone_number': hotel.phone_number,
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
             'rating_total': rating_total,
@@ -221,7 +246,7 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
 
     response = []
     for hotel in get:
-        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
+        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.hotel_id).all()
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel.hotel_id).first()
