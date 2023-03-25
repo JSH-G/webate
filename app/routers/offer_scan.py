@@ -32,6 +32,9 @@ def get_scan_offer_by_hotel(db: Session = Depends(get_db),
                             content={"status": False, "message":"sorry you have no scane offer"})
     
     res = []
+    total_scans = 0
+    scans_today = 0
+    today = datetime.now().date()
     for data in scan_offer: 
         usermodel = db.query(models.Create_Offer).filter(models.Create_Offer.id == data.offer_id).first()
 
@@ -48,8 +51,11 @@ def get_scan_offer_by_hotel(db: Session = Depends(get_db),
             'scan_time': data.scan_time
         }
         res.append(scan_data)
+        total_scans += 1
+        if data.scan_time.date() == today:
+            scans_today += 1
 
-    return {"status": True, "message": "Success", "body": res}
+    return {"status": True, "message": "Success","total_scans": total_scans, "scans_today": scans_today, "body": res}
 
 
 @router.post('/offer_scan', status_code=status.HTTP_200_OK)

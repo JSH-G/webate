@@ -289,3 +289,4 @@ def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_curre
     image_bytes = buffer.getvalue()
 
     return Response(content= image_bytes, media_type="image/png")
+
