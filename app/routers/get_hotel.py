@@ -2,10 +2,9 @@ from typing import List, Optional
 from io import BytesIO
 from PIL import Image
 import pytz
-import uuid, os, qrcode
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+import qrcode
+from fastapi import Response, status, Depends, APIRouter
 from fastapi.responses import JSONResponse
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
 import onesignal_sdk
 from app.database import  get_db
@@ -14,9 +13,6 @@ import boto3, datetime, string, random
 from datetime import datetime, date
 from app import oauth2, config
 from app.models import models
-from app.schemas import offer, menu, event, favorite
-from app import utils
-import requests
 from twilio.rest import Client
 
 router= APIRouter(
@@ -156,6 +152,7 @@ def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(g
                             content={"status": False, "message": "sorry this hotel have no menu"})
         usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
         offer_data = {
+            'id': usermodel.id,
             'menu_name': usermodel.menu_name,
             'menu_image': usermodel.menu_image,
             'price': usermodel.price,
@@ -185,6 +182,7 @@ def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "sorry this hotel have no event"})
         offer_data = {
+            'id': usermodel.id,
             'event_name': usermodel.event_name,
             'event_time': usermodel.event_time,
             'event_end_time': usermodel.event_end_time,
