@@ -119,31 +119,45 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_us
 
     return {"status": True, "message": "Success" ,"body": resp}
 
-# @router.get('/get_one_offer', status_code=status.HTTP_200_OK)
-# def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
+@router.get('/get_one_offer', status_code=status.HTTP_200_OK)
+def get_one_offer(offer_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-#     check = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id).first()
+    usermodel = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id).first()
 
-#     if not check:
-#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-#                             content={"status": False, "message": "sorry this hotel have no offer"})
+    if not usermodel:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry this hotel have no offer"})
     
-#     chheckk = check.closing  - datetime.utcnow()
-        
-#     offer_data = {
-#             'id': check.id,
-#             'name': check.name,
-#             'offer_on': check.offer_on,
-#             'closing': check.closing,
-#             'discription': check.discription,
-#             'offer_image': check.offer_image,
-#             'discount': check.discount,
-#             'end_date': str(chheckk) ,
-#             'is_unlimited': check.is_unlimited,
-#             'created_at': check.created_at,
-#         }
+    get_last_scan = db.query(models.Offer_Scan).filter(models.Offer_Scan.offer_id == offer_id,
+                                                           models.Offer_Scan.user_id == current_user.id).order_by(
+                                                            models.Offer_Scan.scan_time.desc()).first()
+    if get_last_scan:
+            usermodel2 = get_last_scan.scan_time
+    else:
+            usermodel2 = "Null"
 
-#     return {"status": True, "message": "Success" ,"body": offer_data}
+    tz = pytz.timezone('Europe/Athens')
+    remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
+    days, seconds = divmod(remaining_time.seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+
+    offer_data = {
+            'id': usermodel.id,
+            'name': usermodel.name,
+            'offer_on': usermodel.offer_on,
+            'closing': usermodel.closing,
+            'discription': usermodel.discription,
+            'offer_image': usermodel.offer_image,
+            'discount': usermodel.discount,
+            'end_date': remaining_time_str,
+            'last_scan': usermodel2,
+            'is_unlimited': usermodel.is_unlimited,
+            'created_at': usermodel.created_at,
+        }
+
+    return {"status": True, "message": "Success" ,"body": offer_data}
 
 
 @router.get('/get_resturant_menu', status_code=status.HTTP_200_OK)
