@@ -58,13 +58,12 @@ def create_menu(name: str = Form(...),price: str = Form(...),menu_image: UploadF
     db.commit()
     db.refresh(new_menu)
 
-    responseDic = {'status': True, 'message' : 'offer created', 
+    responseDic = {'status': True, 'message' : 'menu created', 
                         'id': new_menu.id,
-                        'name_offer': new_menu.menu_name,
-                        'offer_on': new_menu.price,
-                        'qr_number': new_menu.discription,
-                        'qr_image': new_menu.menu_image,
+                        'menu_name': new_menu.menu_name,
+                        'price': new_menu.price,
                         'discription': new_menu.discription,
+                        'menu_image': new_menu.menu_image,
                         'category': check.category_name,
                         'hotel_name': current_user.name,
                         'hotel_image': current_user.hotel_image_url
@@ -93,7 +92,7 @@ def update_menu(menu_id : str, update: menu.MenuUpdate ,db: Session = Depends(ge
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"Status": "Successfully update ofer"}
+    return {"Status": "Successfully updated menu"}
 
 @router.delete('/delete_menu', status_code=status.HTTP_200_OK)
 def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -104,7 +103,7 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message": "This offer not exist"})
+                            content={"status":False, "message": "This menu not exist"})
     
 
     
@@ -120,4 +119,4 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"Status": "Successfully deleted the offer"}
+    return {"Status": "Successfully deleted the menu"}

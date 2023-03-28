@@ -91,11 +91,11 @@ def update_event(event_id : str, update: event.EventOut ,db: Session = Depends(g
     if not check:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This offer not exist"})
+                            content={"status":False, "message":"This event not exist"})
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status":True ,"message":"Successfully update ofer"}
+    return {"status":True ,"message":"Successfully updated event"}
 
 
 @router.delete('/delete_event', status_code=status.HTTP_200_OK)
@@ -107,7 +107,7 @@ def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int 
     if not check:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This offer not exist"})
+                            content={"status":False, "message":"This event not exist"})
         
     user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
                                                       models.Create_Event.id == event_id).first()
@@ -119,4 +119,4 @@ def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int 
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"status":True ,"message":"Successfully deleted the offer"}
+    return {"status":True ,"message":"Successfully deleted the event"}

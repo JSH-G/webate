@@ -73,7 +73,9 @@ def get_all_hotel(db: Session = Depends(get_db)):
 
 
 @router.get('/get_resturant_offer', status_code=status.HTTP_200_OK)
-def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
+def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    
     check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).all()
 
     if not check:
@@ -82,6 +84,14 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
 
     resp = []
     for usermodel in check:
+        get_last_scan = db.query(models.Offer_Scan).filter(models.Offer_Scan.offer_id == usermodel.id,
+                                                           models.Offer_Scan.user_id == current_user.id).order_by(
+                                                            models.Offer_Scan.scan_time.desc()).first()
+        if get_last_scan:
+            usermodel2 = get_last_scan.scan_time
+        else:
+            usermodel2 = "Null"
+
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "Sorry, this hotel has no offer"})
@@ -101,6 +111,7 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db)):
             'offer_image': usermodel.offer_image,
             'discount': usermodel.discount,
             'end_date': remaining_time_str,
+            'last_scan': usermodel2,
             'is_unlimited': usermodel.is_unlimited,
             'created_at': usermodel.created_at,
         }

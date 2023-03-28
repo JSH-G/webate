@@ -91,7 +91,7 @@ def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depend
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status":True ,"message":"Successfully update ofer"}
+    return {"status":True ,"message":"Successfully updated offer"}
 
 @router.delete('/delete_offer', status_code=status.HTTP_200_OK)
 def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
