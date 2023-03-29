@@ -30,6 +30,7 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
     respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
+            'email': hotel.email,
             'hotel_discription': hotel.discription,
             'longitude': hotel.longitude,
             'latitude':hotel.latitude,
