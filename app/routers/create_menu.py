@@ -92,7 +92,7 @@ def update_menu(menu_id : str, update: menu.MenuUpdate ,db: Session = Depends(ge
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"Status": "Successfully updated menu"}
+    return {"status": True ,"message":"Successfully updated menu"}
 
 @router.delete('/delete_menu', status_code=status.HTTP_200_OK)
 def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):

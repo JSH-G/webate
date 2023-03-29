@@ -45,11 +45,17 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
 
 
 @router.get('/get_all_hotel', status_code=status.HTTP_200_OK)
-def get_all_hotel(db: Session = Depends(get_db)):
+def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     hotels = db.query(models.Hotel_Sign_up).all()
 
     response = []
     for hotel in hotels:
+        get_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel.id,
+                                                              models.Favorite_Hotel.user_id == current_user.id).first()
+        if get_favorite:
+            usermodel3 = True
+        else:
+            usermodel3 = False
         ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
@@ -62,6 +68,7 @@ def get_all_hotel(db: Session = Depends(get_db)):
             'phone_number': hotel.phone_number,
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
+            'favorite' : usermodel3,
             'rating_total': rating_total,
             'rating_average': round(rating_average, 2)
         }
@@ -92,6 +99,7 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_us
             usermodel2 = get_last_scan.scan_time
         else:
             usermodel2 = "Null"
+        
 
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
