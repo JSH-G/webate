@@ -134,6 +134,7 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db), current_user: in
     if get_last_scan:
             usermodel2 = get_last_scan.scan_time
     else:
+            
             usermodel2 = "Null"
 
     tz = pytz.timezone('Europe/Athens')
