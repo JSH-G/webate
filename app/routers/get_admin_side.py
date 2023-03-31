@@ -94,13 +94,7 @@ def get_admin_resturant_offer(hotel_id: str, db: Session = Depends(get_db), curr
 
     resp = []
     for usermodel in check:
-        # get_last_scan = db.query(models.Offer_Scan).filter(models.Offer_Scan.offer_id == usermodel.id,
-        #                                                    models.Offer_Scan.user_id == current_user.id).order_by(
-        #                                                     models.Offer_Scan.scan_time.desc()).first()
-        # if get_last_scan:
-        #     usermodel2 = get_last_scan.scan_time
-        # else:
-        #     usermodel2 = "Null"
+        
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "Sorry, this hotel has no offer"})

@@ -20,18 +20,13 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":f"This id {like.hotel_id} does not Exist"})
-        
     like_qurey = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == like.hotel_id,
                                                  models.Favorite_Hotel.user_id == current_user.id)
-    
-
     found_like = like_qurey.first()
-
     if (like.dir == True):
         if found_like:
-
             return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status":False, "message":f"{current_user.name} you already add this hotel {like.hotel_id}"})
+                            content={"status":False, "message":f"{current_user.name} You already have add this hotel in favorite"})
         
         new_like = models.Favorite_Hotel(hotel_id = like.hotel_id, user_id = current_user.id)
         db.add(new_like)

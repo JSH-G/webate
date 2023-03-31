@@ -50,6 +50,13 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
 
     response = []
     for hotel in hotels:
+        get_rating = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id,
+                                                    models.Rating.user_id == current_user.id).first()
+        if get_rating:
+            usermodel4 = True
+        else:
+            usermodel4 = False
+        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
         get_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel.id,
                                                               models.Favorite_Hotel.user_id == current_user.id).first()
         if get_favorite:
@@ -69,6 +76,7 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
             'favorite' : usermodel3,
+            'rate_this_hotel': usermodel4,
             'rating_total': rating_total,
             'rating_average': round(rating_average, 2)
         }
