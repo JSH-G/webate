@@ -84,10 +84,14 @@ def update_menu(menu_id : str, update: menu.MenuUpdate ,db: Session = Depends(ge
     
     check_category_id = db.query(models.Create_category).filter(models.Create_category.id == update.category_id).first()
     if not check_category_id:
-
-
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This category is not found"})
+    
+    user_check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
+                                                      models.CreateMenu.id == menu_id).first()
+    if not user_check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"You can't able to performed this action"})
     
     
     updte.update(update.dict(), synchronize_session=False)
@@ -105,13 +109,10 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message": "This menu not exist"})
     
-
-    
     user_check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
                                                       models.CreateMenu.id == menu_id).first()
     
     if not user_check:
-
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"You can't able to performed this action"})
     

@@ -85,6 +85,12 @@ def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depend
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This offer not exist"})
     
+    user_check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id,
+                                                      models.Create_Offer.id == offer_id).first()
+    if not user_check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"You can't able to performed this action"})
+    
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()

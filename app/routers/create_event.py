@@ -93,6 +93,13 @@ def update_event(event_id : str, update: event.EventOut ,db: Session = Depends(g
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This event not exist"})
     
+    user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
+                                                      models.Create_Event.id == event_id).first()
+    
+    if not user_check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"You can't able to performed this action"})
+    
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
     return {"status":True ,"message":"Successfully updated event"}
