@@ -120,3 +120,34 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
     db.commit()
 
     return {"Status": "Successfully deleted the menu"}
+
+
+@router.get('/get_hotel_menu', status_code=status.HTTP_200_OK)
+def get_hotel_menu(category_id: str , db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
+
+    check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
+                                               models.CreateMenu.category_id == category_id).all()
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"Sorry this menu is not added yet"})
+    
+    resp = []
+    for test in check:
+        usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry this hotel have no menu"})
+        usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
+        offer_data = {
+            'id': usermodel.id,
+            'menu_name': usermodel.menu_name,
+            'menu_image': usermodel.menu_image,
+            'price': usermodel.price,
+            'discription': usermodel.discription,
+            'category_name': usermodel1.category_name,
+            'category_image': usermodel1.category_image
+        }
+    
+        resp.append(offer_data)
+
+    return {"status": True, "message": "Success" ,"body": resp}

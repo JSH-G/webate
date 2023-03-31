@@ -1,5 +1,5 @@
 from typing import List, Optional
-import uuid, os
+import pytz
 from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
 from fastapi.responses import JSONResponse
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
@@ -29,9 +29,6 @@ client_s3 = boto3.resource(
     aws_access_key_id = config.settings.aws_access_key_id,
     aws_secret_access_key = config.settings.aws_secret_access_key
 )
-
-
-
 
 @router.post('/create_offer', status_code=status.HTTP_200_OK)
 def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: UploadFile = File(...),
@@ -95,6 +92,7 @@ def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depend
 
 @router.delete('/delete_offer', status_code=status.HTTP_200_OK)
 def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+    print(current_user)
 
     
     dell = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id)
@@ -117,4 +115,42 @@ def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int 
 
     return {"status":True ,"message":"Successfully deleted the offer"}
 
+
+@router.get('/get_hotel_offer', status_code=status.HTTP_200_OK)
+def get_hotel_offer(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
+
+    check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id).all()
+
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This hotel does not exist"})
+
+    resp = []
+    for usermodel in check:
+
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Sorry, you have no offer"})
+        tz = pytz.timezone('Europe/Athens')
+        remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
+        days, seconds = divmod(remaining_time.seconds, 86400)
+        hours, seconds = divmod(seconds, 3600)
+        minutes, seconds = divmod(seconds, 60)
+        remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+
+        offer_data = {
+            'id': usermodel.id,
+            'name': usermodel.name,
+            'offer_on': usermodel.offer_on,
+            'closing': usermodel.closing,
+            'discription': usermodel.discription,
+            'offer_image': usermodel.offer_image,
+            'discount': usermodel.discount,
+            'end_date': remaining_time_str,
+            'is_unlimited': usermodel.is_unlimited,
+            'created_at': usermodel.created_at,
+        }
+        resp.append(offer_data)
+
+    return {"status": True, "message": "Success" ,"body": resp}
 

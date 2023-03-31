@@ -120,3 +120,37 @@ def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int 
     db.commit()
 
     return {"status":True ,"message":"Successfully deleted the event"}
+
+
+
+@router.get('/get_hotel_event', status_code=status.HTTP_200_OK)
+def get_hotel_event(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
+
+    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id).all()
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This id is not exist"})
+    
+    resp = []
+    for test in check:
+        usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
+        if not usermodel:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "sorry you have no event"})
+        offer_data = {
+            'id': usermodel.id,
+            'event_name': usermodel.event_name,
+            'event_time': usermodel.event_time,
+            'event_end_time': usermodel.event_end_time,
+            'event_image_vedio': usermodel.event_image_vedio,
+            'event_date': usermodel.event_date,
+            'longitude':usermodel.longitude,
+            'latitude':usermodel.latitude,
+            'event_discription': usermodel.discription,
+            'is_active': usermodel.is_active
+   
+        }
+    
+        resp.append(offer_data)
+
+    return {"status": True, "message": "Success" ,"body": resp}
