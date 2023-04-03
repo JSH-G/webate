@@ -15,7 +15,7 @@ router= APIRouter(
 
 @router.get('/get_all_raiting', status_code=status.HTTP_200_OK)
 def get_all_user(db: Session = Depends(get_db)):
-    check = db.query(models.Rating).all()
+    check = db.query(models.Rating).order_by(models.Rating.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "This id is not exist"})

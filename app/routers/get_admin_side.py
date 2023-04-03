@@ -22,7 +22,7 @@ router= APIRouter(
 
 @router.get('/get_all_hotel_admin', status_code=status.HTTP_200_OK)
 def get_all_hotel_admin(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
-    hotels = db.query(models.Hotel_Sign_up).all()
+    hotels = db.query(models.Hotel_Sign_up).order_by(models.Hotel_Sign_up.created_at.desc()).all()
 
     response = []
     for hotel in hotels:
@@ -49,7 +49,7 @@ def get_all_hotel_admin(db: Session = Depends(get_db), current_user: int = Depen
 @router.get('/get_scan_offer_admin', status_code=status.HTTP_200_OK)
 def get_scan_offer_by_hotel_admin(hotel_id: str ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
     
-    scan_offer = db.query(models.Offer_Scan).filter(models.Offer_Scan.hotel_id == hotel_id).all()
+    scan_offer = db.query(models.Offer_Scan).filter(models.Offer_Scan.hotel_id == hotel_id).order_by(models.Offer_Scan.created_at.desc()).all()
     
     if not scan_offer:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
@@ -86,7 +86,7 @@ def get_scan_offer_by_hotel_admin(hotel_id: str ,db: Session = Depends(get_db), 
 def get_admin_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
     
-    check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).all()
+    check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).order_by(models.Create_Offer.created_at.desc()).all()
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
@@ -163,7 +163,7 @@ def update_offer_by_admin(offer_id : str, update: offer.OfferUpdate ,db: Session
 def get_admin_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
     check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
-                                               models.CreateMenu.category_id == category_id).all()
+                                               models.CreateMenu.category_id == category_id).order_by(models.CreateMenu.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message": "Sorry this menu is not added yet"})
@@ -232,7 +232,7 @@ def delete_menu_by_admin(menu_id: str,db: Session = Depends(get_db), current_use
 @router.get('/get_admin_resturant_event', status_code=status.HTTP_200_OK)
 def get_admin_resturant_event(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).all()
+    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).order_by(models.Create_Event.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "This id is not exist"})

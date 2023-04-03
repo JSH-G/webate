@@ -46,7 +46,7 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
 
 @router.get('/get_all_hotel', status_code=status.HTTP_200_OK)
 def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    hotels = db.query(models.Hotel_Sign_up).all()
+    hotels = db.query(models.Hotel_Sign_up).order_by(models.Hotel_Sign_up.created_at.desc()).all()
 
     response = []
     for hotel in hotels:
@@ -78,7 +78,7 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             'favorite' : usermodel3,
             'rate_this_hotel': usermodel4,
             'rating_total': rating_total,
-            'rating_average': round(rating_average, 2)
+            'rating_average': round(rating_average, 1)
         }
         response.append(respons)
 
@@ -92,7 +92,7 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
 def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     
-    check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).all()
+    check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel_id).order_by(models.Create_Offer.created_at.desc()).all()
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
@@ -108,7 +108,6 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_us
         else:
             usermodel2 = "Null"
         
-
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "Sorry, this hotel has no offer"})
@@ -182,7 +181,7 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db), current_user: in
 def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(get_db)):
 
     check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
-                                               models.CreateMenu.category_id == category_id).all()
+                                               models.CreateMenu.category_id == category_id).order_by(models.CreateMenu.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"Sorry this menu is not added yet"})
@@ -213,7 +212,7 @@ def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(g
 @router.get('/get_resturant_event', status_code=status.HTTP_200_OK)
 def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).all()
+    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).order_by(models.Create_Event.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "This id is not exist"})
@@ -258,7 +257,7 @@ def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
 @router.get('/get_all_category', status_code=status.HTTP_200_OK)
 def get_category(db: Session = Depends(get_db)):
-    check = db.query(models.Create_category).all()
+    check = db.query(models.Create_category).order_by(models.Create_category.id.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "This id is not exist"})
@@ -283,27 +282,45 @@ def get_category(db: Session = Depends(get_db)):
 @router.get('/get_favorite_hotel', status_code=status.HTTP_200_OK)
 def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-    get = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.user_id == current_user.id).all()
+    get = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.user_id == current_user.id).order_by(models.Favorite_Hotel.created_at.desc()).all()
 
     response = []
     for hotel in get:
-        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.hotel_id).all()
+        get_rating = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id,
+                                                    models.Rating.user_id == current_user.id).first()
+        if get_rating:
+            usermodel4 = True
+        else:
+            usermodel4 = False
+        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
+        get_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel.id,
+                                                              models.Favorite_Hotel.user_id == current_user.id).first()
+        if get_favorite:
+            usermodel3 = True
+        else:
+            usermodel3 = False
+        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel.hotel_id).first()
         respons = {
-            'status': "true",
             'id': check.id,
             'hotel_name': check.name,
             'hotel_discription': check.discription,
+            'longitude': check.longitude,
+            'latitude':check.latitude,
+            'phone_number': check.phone_number,
             'hotel_pic': check.hotel_image_url,
             'hotel_logo': check.logo_image_url,
+            'favorite' : usermodel3,
+            'rate_this_hotel': usermodel4,
             'rating_total': rating_total,
-            'rating_average': round(rating_average, 2)
+            'rating_average': round(rating_average, 1)
         }
         response.append(respons)
 
-    return response
+    return {"status": True,"message":"Success","body":response}
+
 
 
 @router.get("/get_offer", status_code=status.HTTP_200_OK)
@@ -313,7 +330,7 @@ def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_curre
         "user": str(current_user.id),
             "offer_id": offer_id
               }
-    # data = [str(current_user.id),offer_id]
+
     data = res
 
     data = str(data)

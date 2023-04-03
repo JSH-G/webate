@@ -38,7 +38,6 @@ def create_menu(name: str = Form(...),price: str = Form(...),menu_image: UploadF
                             content={"status":False, "message":"This Id is not exist"})
     
 
-        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This Id is not exist")
 
     new_menu: models.CreateMenu = models.CreateMenu()
     new_menu.menu_name = name

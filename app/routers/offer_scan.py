@@ -85,7 +85,7 @@ router= APIRouter(
 def get_scan_offer_by_hotel(db: Session = Depends(get_db),
                current_user: int = Depends(oauth2.get_current_hotel)):
     
-    scan_offer = db.query(models.Offer_Scan).filter(models.Offer_Scan.hotel_id == current_user.id).all()
+    scan_offer = db.query(models.Offer_Scan).filter(models.Offer_Scan.hotel_id == current_user.id).order_by(models.Offer_Scan.created_at.desc()).all()
     
     if not scan_offer:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
