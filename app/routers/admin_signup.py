@@ -40,45 +40,45 @@ client_s3 = boto3.resource(
     aws_secret_access_key = config.settings.aws_secret_access_key
 )
 
-@router.post('/admin_signup', status_code=status.HTTP_200_OK)
-async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_db)):
+# @router.post('/admin_signup', status_code=status.HTTP_200_OK)
+# async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_db)):
 
-    hash_password = utils.hash(new_admin.password)
-    new_admin.password = hash_password
-    otp_update = str(''.join(random.choice('0123456789') for _ in range(4)))
-    check = new_admin.login_type.lower()
-    new_admin.login_type = check
-    new_admin.pre_process()
+#     hash_password = utils.hash(new_admin.password)
+#     new_admin.password = hash_password
+#     otp_update = str(''.join(random.choice('0123456789') for _ in range(4)))
+#     check = new_admin.login_type.lower()
+#     new_admin.login_type = check
+#     new_admin.pre_process()
 
-    add_admin = models.Admin_Sign_Up(otp = otp_update, **new_admin.dict())
-    db.add(add_admin)
-    db.commit()
-    db.refresh(add_admin)
+#     add_admin = models.Admin_Sign_Up(otp = otp_update, **new_admin.dict())
+#     db.add(add_admin)
+#     db.commit()
+#     db.refresh(add_admin)
 
-    html = f"""<h1>This Otp is from webate verfication. </h1></br>
-                <h1>This email is only for Michail Prasianakis athentication. </h1></br>
-                <p><h1>{otp_update}</h1></p></br>
-                <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
+#     html = f"""<h1>This Otp is from webate verfication. </h1></br>
+#                 <h1>This email is only for Michail Prasianakis athentication. </h1></br>
+#                 <p><h1>{otp_update}</h1></p></br>
+#                 <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
     
-    message = MessageSchema(
-        subject="Verification Code",
-        recipients= [new_admin.email],
-        body=html,
-        subtype=MessageType.html)
-    fm = FastMail(conf)
-    await fm.send_message(message)
+#     message = MessageSchema(
+#         subject="Verification Code",
+#         recipients= [new_admin.email],
+#         body=html,
+#         subtype=MessageType.html)
+#     fm = FastMail(conf)
+#     await fm.send_message(message)
 
-    new_data = {
-        'token_type': 'bearer',
-        'access_token':  oauth2.create_access_token(data={"user_id": add_admin.id}),
-        'id': add_admin.id,
-        'name': add_admin.name,
-        'email': add_admin.email,
-        'otp': otp_update,
-        'device_token': add_admin.device_token,
-    }
+#     new_data = {
+#         'token_type': 'bearer',
+#         'access_token':  oauth2.create_access_token(data={"user_id": add_admin.id}),
+#         'id': add_admin.id,
+#         'name': add_admin.name,
+#         'email': add_admin.email,
+#         'otp': otp_update,
+#         'device_token': add_admin.device_token,
+#     }
 
-    return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
+#     return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
 
 
 @router.post('/email_verification_admin', status_code=status.HTTP_200_OK)
