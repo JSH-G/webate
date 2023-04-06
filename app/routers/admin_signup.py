@@ -55,7 +55,8 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
     db.commit()
     db.refresh(add_admin)
 
-    html = f"""<h1>This Otp is from webate verfication </h1></br>
+    html = f"""<h1>This Otp is from webate verfication. </h1></br>
+                <h1>This email is only for Michail Prasianakis athentication. </h1></br>
                 <p><h1>{otp_update}</h1></p></br>
                 <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
     
