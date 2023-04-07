@@ -40,45 +40,49 @@ client_s3 = boto3.resource(
     aws_secret_access_key = config.settings.aws_secret_access_key
 )
 
-# @router.post('/admin_signup', status_code=status.HTTP_200_OK)
-# async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_db)):
+@router.post('/admin_signup', status_code=status.HTTP_200_OK)
+async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_db)):
 
-#     hash_password = utils.hash(new_admin.password)
-#     new_admin.password = hash_password
-#     otp_update = str(''.join(random.choice('0123456789') for _ in range(4)))
-#     check = new_admin.login_type.lower()
-#     new_admin.login_type = check
-#     new_admin.pre_process()
+    hash_password = utils.hash(new_admin.password)
+    new_admin.password = hash_password
+    otp_update = str(''.join(random.choice('0123456789') for _ in range(4)))
+    check = new_admin.login_type.lower()
+    new_admin.login_type = check
+    new_admin.pre_process()
 
-#     add_admin = models.Admin_Sign_Up(otp = otp_update, **new_admin.dict())
-#     db.add(add_admin)
-#     db.commit()
-#     db.refresh(add_admin)
+    attentication = db.query(models.Admin_Sign_Up).filter(models.Admin_Sign_Up.email == new_admin.email.lower()).first()
+    if attentication:
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT,
+                            content={"status": False, "message": "This email is already exist"})
+    add_admin = models.Admin_Sign_Up(otp = otp_update, **new_admin.dict())
+    db.add(add_admin)
+    db.commit()
+    db.refresh(add_admin)
 
-#     html = f"""<h1>This Otp is from webate verfication. </h1></br>
-#                 <h1>This email is only for Michail Prasianakis athentication. </h1></br>
-#                 <p><h1>{otp_update}</h1></p></br>
-#                 <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
+    html = f"""<h1>This Otp is from webate verfication. </h1></br>
+                <h1>This email is only for Michail Prasianakis athentication. </h1></br>
+                <p><h1>{otp_update}</h1></p></br>
+                <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
     
-#     message = MessageSchema(
-#         subject="Verification Code",
-#         recipients= [new_admin.email],
-#         body=html,
-#         subtype=MessageType.html)
-#     fm = FastMail(conf)
-#     await fm.send_message(message)
+    message = MessageSchema(
+        subject="Verification Code",
+        recipients= [new_admin.email],
+        body=html,
+        subtype=MessageType.html)
+    fm = FastMail(conf)
+    await fm.send_message(message)
 
-#     new_data = {
-#         'token_type': 'bearer',
-#         'access_token':  oauth2.create_access_token(data={"user_id": add_admin.id}),
-#         'id': add_admin.id,
-#         'name': add_admin.name,
-#         'email': add_admin.email,
-#         'otp': otp_update,
-#         'device_token': add_admin.device_token,
-#     }
+    new_data = {
+        'token_type': 'bearer',
+        'access_token':  oauth2.create_access_token(data={"user_id": add_admin.id}),
+        'id': add_admin.id,
+        'name': add_admin.name,
+        'email': add_admin.email,
+        'otp': otp_update,
+        'device_token': add_admin.device_token,
+    }
 
-#     return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
+    return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
 
 
 @router.post('/email_verification_admin', status_code=status.HTTP_200_OK)
@@ -145,3 +149,16 @@ def upgrade_hotel(hotel_id: str, db: Session = Depends(get_db), current_user: in
             content={"status": False, "message": f"this user_id {hotel_id} is not exist"})
         
     return {"status": True , "message":"acoount is updated successfully"}
+
+
+@router.put("/profile_image_test",status_code=status.HTTP_200_OK)
+async def image_url_test(file: UploadFile, db: Session = Depends(get_db)):
+
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    noow = str(datetime.now())
+    filename = file.filename.replace(" ", "_").replace(".", "_")
+    check = noow.replace(".", "_").replace(" ", "_").replace(":","_")
+    bucket.upload_fileobj(file.file, f"{check}{filename}.jpg")
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{check}{filename}.jpg"
+        
+    return {"Message": upload_url}

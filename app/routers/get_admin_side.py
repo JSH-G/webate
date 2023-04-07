@@ -32,6 +32,7 @@ def get_all_hotel_admin(db: Session = Depends(get_db), current_user: int = Depen
         respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
+            'email': hotel.email,
             'hotel_discription': hotel.discription,
             'longitude': hotel.longitude,
             'latitude':hotel.latitude,

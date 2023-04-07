@@ -36,6 +36,7 @@ def get_all_hotel_admin(db: Session = Depends(get_db)):
         respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
+            'email': hotel.email,
             'hotel_discription': hotel.discription,
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,

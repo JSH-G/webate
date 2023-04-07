@@ -70,6 +70,7 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             'id': hotel.id,
             'hotel_name': hotel.name,
             'hotel_discription': hotel.discription,
+            'email': hotel.email,
             'longitude': hotel.longitude,
             'latitude':hotel.latitude,
             'phone_number': hotel.phone_number,

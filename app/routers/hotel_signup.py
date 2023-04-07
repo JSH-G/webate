@@ -57,6 +57,11 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
     new_hotel.latitude = latitude
     new_hotel.otp = str(''.join(random.choice('0123456789') for _ in range(4)))
 
+    attentication = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == email.lower()).first()
+    if attentication:
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT,
+                            content={"status": False, "message": "This email is already exist"})
+
     bucket = client_s3.Bucket(S3_BUCKET_NAME)
     noow = str(datetime.now())
     bucket.upload_fileobj(hotel_image.file, f"{noow}{hotel_image.filename}")
