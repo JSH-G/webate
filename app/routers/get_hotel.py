@@ -307,6 +307,7 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
         respons = {
             'id': check.id,
             'hotel_name': check.name,
+            'email': check.email,
             'hotel_discription': check.discription,
             'longitude': check.longitude,
             'latitude':check.latitude,
