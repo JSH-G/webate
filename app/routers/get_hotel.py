@@ -334,7 +334,6 @@ def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_curre
               }
 
     data = res
-
     data = str(data)
     qr = qrcode.QRCode(version=1, box_size=5, border=5)
 
