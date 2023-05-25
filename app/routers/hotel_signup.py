@@ -197,3 +197,5 @@ def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db
     
 
     return {'status': True, 'message': "Your password change successfuly"}
+
+# @router.post()

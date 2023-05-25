@@ -29,10 +29,12 @@ def get_all_hotel_admin(db: Session = Depends(get_db), current_user: int = Depen
         ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
+        data = []
         respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
             'email': hotel.email,
+            'gallery': data,
             'hotel_discription': hotel.discription,
             'longitude': hotel.longitude,
             'latitude':hotel.latitude,
@@ -43,6 +45,14 @@ def get_all_hotel_admin(db: Session = Depends(get_db), current_user: int = Depen
             'rating_average': round(rating_average, 2)
         }
         response.append(respons)
+
+        check_image = db.query(models.Hotel_Gallery_Image).filter(models.Hotel_Gallery_Image.hotel_id == hotel.id).all()
+        for image in check_image:
+            image_data = {
+                'image_id': image.id,
+                'image': image.image
+            }
+            data.append(image_data)
 
     return {"status": True,"message":"Success","body":response}
 

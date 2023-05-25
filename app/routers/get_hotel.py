@@ -27,10 +27,12 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
     ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
     rating_total = sum(rating.rating for rating in ratings) if ratings else 0
     rating_average = rating_total / len(ratings) if ratings else 0
+    data = []
     respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
             'email': hotel.email,
+            'gallery': data, 
             'hotel_discription': hotel.discription,
             'longitude': hotel.longitude,
             'latitude':hotel.latitude,
@@ -40,6 +42,13 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
             'rating_total': rating_total,
             'rating_average': round(rating_average, 2)
         }
+    check_image = db.query(models.Hotel_Gallery_Image).filter(models.Hotel_Gallery_Image.hotel_id == hotel.id).all()
+    for image in check_image:
+            image_data = {
+                'image_id': image.id,
+                'image': image.image
+            }
+            data.append(image_data)
 
     return {"status": True,"message":"Success","body":respons}
 
@@ -66,11 +75,13 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
         ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
+        data = []
         respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
             'hotel_discription': hotel.discription,
             'email': hotel.email,
+            'gallery': data, 
             'longitude': hotel.longitude,
             'latitude':hotel.latitude,
             'phone_number': hotel.phone_number,
@@ -82,6 +93,14 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             'rating_average': round(rating_average, 1)
         }
         response.append(respons)
+
+        check_image = db.query(models.Hotel_Gallery_Image).filter(models.Hotel_Gallery_Image.hotel_id == hotel.id).all()
+        for image in check_image:
+            image_data = {
+                'image_id': image.id,
+                'image': image.image
+            }
+            data.append(image_data)
 
     return {"status": True,"message":"Success","body":response}
 
