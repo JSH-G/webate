@@ -46,10 +46,10 @@ def upload_images(
     if len(images) > remaining_images:
         if is_pro:
             return JSONResponse(status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                                content={'status': False, 'message': 'Pro Hotel can upload up to 10 images.'})
+                                content={'status': False, 'message': 'that Pro Hotel has the ability to upload a maximum of 10 images.'})
         else:
             return JSONResponse(status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                                content= {'status': False, 'message': f'Free Hotel can upload a maximum of {remaining_images} more image(s).'})
+                                content= {'status': False, 'message': f'Free hotels can upload a maximum of{remaining_images} more image(s).'})
 
     resp = []
     for image in images:
@@ -77,7 +77,7 @@ def delete_image(image_id: str,db: Session = Depends(get_db),
     index = check_image.first()
     if not index:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This image is not exist"})
+                            content={"status": False, "message": "This image does not exist"})
     
     if index.hotel_id != current_user.id:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -86,5 +86,5 @@ def delete_image(image_id: str,db: Session = Depends(get_db),
     check_image.delete(synchronize_session=False)
     db.commit()
 
-    return{"status": True, "message": "image deleted successfully"}
+    return{"status": True, "message": "image has been successfully deleted."}
 

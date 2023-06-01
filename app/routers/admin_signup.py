@@ -53,7 +53,7 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
     attentication = db.query(models.Admin_Sign_Up).filter(models.Admin_Sign_Up.email == new_admin.email.lower()).first()
     if attentication:
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status": False, "message": "This email is already exist"})
+                            content={"status": False, "message": "This email already exists"})
     add_admin = models.Admin_Sign_Up(otp = otp_update, **new_admin.dict())
     db.add(add_admin)
     db.commit()
@@ -82,7 +82,7 @@ async def admin_signup(new_admin: admin.CreateAdmin, db: Session = Depends(get_d
         'device_token': add_admin.device_token,
     }
 
-    return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
+    return {"status": True, "message": "Successfully signed up" ,"body": new_data}
 
 
 @router.post('/email_verification_admin', status_code=status.HTTP_200_OK)
@@ -97,7 +97,7 @@ def email_verification_admin(otp: str, db: Session = Depends(get_db), current_us
 
         # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
     
-    return {'status': True, 'message': "Your email successfuly"}
+    return {'status': True, 'message': "Your email successfully verified"}
 
 @router.put("/profile_image",status_code=status.HTTP_200_OK)
 async def image_url(file: UploadFile, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
@@ -132,7 +132,7 @@ def change_password_admin(pss: user.UpdatePassword, db: Session = Depends(get_db
                             content={"status":False, "message":"you are not able to perform this action"})
     
 
-    return {'status': True, 'message': "Your password change successfuly"}
+    return {'status': True, 'message': "Password was successfully changed."}
 
 
 @router.post('/upgrade_hotel', status_code=status.HTTP_200_OK)
@@ -148,7 +148,7 @@ def upgrade_hotel(hotel_id: str, db: Session = Depends(get_db), current_user: in
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, 
             content={"status": False, "message": f"this user_id {hotel_id} is not exist"})
         
-    return {"status": True , "message":"acoount is updated successfully"}
+    return {"status": True , "message":"Account has been updated successfully."}
 
 
 @router.put("/profile_image_test",status_code=status.HTTP_200_OK)

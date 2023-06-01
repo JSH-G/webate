@@ -40,7 +40,7 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
     
     if check:
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status":False, "message": "This email is already exist"})
+                            content={"status":False, "message": "This email already exists."})
     
 
     add_user = models.User_Sign_Up(otp = otp_update, **new_user.dict())
@@ -48,9 +48,9 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(add_user)
 
-    html = f"""<h1>This Otp is from webate verfication </h1></br>
+    html = f"""<h1>This Otp is from We-bate verification </h1></br>
                 <p><h1>{otp_update}</h1></p></br>
-                <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
+                <h2>If you don't know please contact us +XXXXXXXXX</h2>"""
     
     message = MessageSchema(
         subject="Verification Code",
@@ -70,7 +70,7 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
         'otp': otp_update
     }
 
-    return {"status": True, "message": "Successfully SignUp" ,"body": new_data}
+    return {"status": True, "message": "Successfully signed up" ,"body": new_data}
 
 @router.post('/email_verification', status_code=status.HTTP_200_OK)
 def email_verification(otp: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -112,7 +112,7 @@ async def forget_password_user(pss: user.SendEmail, db: Session = Depends(get_db
 
     else:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This email is not found"})
+                            content={"status":False, "message":"This email was not found."})
     
     otp_data  = {
         'otp': ok
@@ -140,7 +140,7 @@ def update_user_password(email: str, pss: user.UpdatePassword, db: Session = Dep
                             content={"status":False, "message":"This email is not found"})
     
 
-    return {'status': True, 'message': "Your password updated successfuly"}
+    return {'status': True, 'message': "Your password has been updated successfully."}
 
 
 @router.put('/change_password', status_code=status.HTTP_200_OK)
@@ -159,7 +159,7 @@ def change_password(pss: user.UpdatePassword, db: Session = Depends(get_db), cur
     else:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"you are not able to perform this action"})
+                            content={"status":False, "message":"You are unable to perform this action."})
     
 
-    return {'status': True, 'message': "Your password change successfuly"}
+    return {'status': True, 'message': "Your password has been changed successfully."}

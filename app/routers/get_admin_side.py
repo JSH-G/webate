@@ -64,7 +64,7 @@ def get_scan_offer_by_hotel_admin(hotel_id: str ,db: Session = Depends(get_db), 
     
     if not scan_offer:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message":"sorry you have no scane offer"})
+                            content={"status": False, "message":"Sorry, you do not have any scan offers."})
     
     res = []
     total_scans = 0
@@ -75,7 +75,7 @@ def get_scan_offer_by_hotel_admin(hotel_id: str ,db: Session = Depends(get_db), 
 
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message":"sorry your offer id is not correct"})
+                            content={"status": False, "message":"The provided offer ID is not correct"})
         
         scan_data = {
             'id': usermodel.id,
@@ -145,12 +145,12 @@ def delete_offer_by_admin(offer_id: str,db: Session = Depends(get_db), current_u
     if not check:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This offer not exist"})
+                            content={"status":False, "message":"This offer does not exist"})
     
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"status":True ,"message":"Successfully deleted the offer by admin"}
+    return {"status":True ,"message":"Offer was successfully deleted by an administrator"}
 
 
 @router.put('/update_offer_by_admin', status_code=status.HTTP_200_OK)
@@ -177,14 +177,14 @@ def get_admin_resturant_menu(hotel_id: str, category_id: str , db: Session = Dep
                                                models.CreateMenu.category_id == category_id).order_by(models.CreateMenu.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message": "Sorry this menu is not added yet"})
+                            content={"status":False, "message": "Menu not currently available."})
     
     resp = []
     for test in check:
         usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no menu"})
+                            content={"status": False, "message": "Sorry hotel does not have a menu"})
         usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
         offer_data = {
             'id': usermodel.id,
@@ -209,7 +209,7 @@ def update_menu_by_admin(menu_id : str, update: menu.MenuUpdate ,db: Session = D
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This menu not exist"})
+                            content={"status":False, "message":"This menu not available"})
 
     
     check_category_id = db.query(models.Create_category).filter(models.Create_category.id == update.category_id).first()
@@ -220,7 +220,7 @@ def update_menu_by_admin(menu_id : str, update: menu.MenuUpdate ,db: Session = D
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status": True ,"message":"Successfully updated menu by admin"}
+    return {"status": True ,"message":"The menu was successfully updated by an administrator."}
 
 
 @router.delete('/delete_menu_by_admin', status_code=status.HTTP_200_OK)
@@ -237,7 +237,7 @@ def delete_menu_by_admin(menu_id: str,db: Session = Depends(get_db), current_use
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"status": True , "message": "Successfully deleted the menu by admin"}
+    return {"status": True , "message": "Successfully deleted by an administrator"}
 
 
 @router.get('/get_admin_resturant_event', status_code=status.HTTP_200_OK)
@@ -253,7 +253,7 @@ def get_admin_resturant_event(hotel_id: str, db: Session = Depends(get_db), curr
         usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no event"})
+                            content={"status": False, "message": "Hotel does not currently have any events taking place"})
         offer_data = {
             'id': usermodel.id,
             'event_name': usermodel.event_name,
@@ -282,11 +282,11 @@ def update_event_by_admin(event_id : str, update: event.EventOut ,db: Session = 
     if not check:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This event not exist"})
+                            content={"status":False, "message":"This event does not exist"})
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status":True ,"message":"Successfully updated event by admin"}
+    return {"status":True ,"message":"The event was successfully updated by an administrator."}
 
 
 
@@ -303,7 +303,7 @@ def delete_event_by_admin(event_id: str,db: Session = Depends(get_db), current_u
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"status":True ,"message":"Successfully deleted the event by admin"}
+    return {"status":True ,"message":"Successfully deleted the event by an administrator"}
 
 
 @router.delete('/delete_hotel_by_admin', status_code=status.HTTP_200_OK)
@@ -314,9 +314,9 @@ def delete_hotel_by_admin(hotel_id: str,db: Session = Depends(get_db), current_u
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This hotel not exist"})
+                            content={"status":False, "message":"This hotel does not exist"})
     
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"status":True ,"message":"Successfully deleted the hotel by admin"}
+    return {"status":True ,"message":"Successfully deleted by an administrator"}

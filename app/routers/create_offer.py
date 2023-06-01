@@ -72,7 +72,7 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
                         'hotel_image': current_user.hotel_image_url
                         }
 
-    return {"status": True,"message":"Successfully Created Offer","body":responseDic}
+    return {"status": True,"message":"Offer has been created successfully.","body":responseDic}
 
 @router.put('/update_offer', status_code=status.HTTP_200_OK)
 def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -89,12 +89,12 @@ def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depend
                                                       models.Create_Offer.id == offer_id).first()
     if not user_check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You can't able to performed this action"})
+                            content={"status":False, "message":"You are not able to perform this action"})
     
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status":True ,"message":"Successfully updated offer"}
+    return {"status":True ,"message":"Offer has been updated successfully."}
 
 @router.delete('/delete_offer', status_code=status.HTTP_200_OK)
 def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -114,7 +114,7 @@ def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int 
     
     if not user_check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You can't able to performed this action"})
+                            content={"status":False, "message":"You are not able to perform this action"})
     
     dell.delete(synchronize_session=False)
     db.commit()
@@ -136,7 +136,7 @@ def get_hotel_offer(db: Session = Depends(get_db),current_user: int = Depends(oa
 
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "Sorry, you have no offer"})
+                            content={"status": False, "message": " Sorry! sDoes not currently have any offer available."})
         tz = pytz.timezone('Europe/Athens')
         remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
         days, seconds = divmod(remaining_time.seconds, 86400)

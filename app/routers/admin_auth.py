@@ -24,11 +24,11 @@ def login_admin(device_token: str = Body(None), user_credentials: OAuth2Password
 
     if up_pass == None:
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
-                            content={"status":False, "message":"not found Credential"})
+                            content={"status":False, "message":"Credentials are not recognized" })
 
     if not utils.verify(user_credentials.password, up_pass.password):
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
-                            content={"status":False, "message":"check your password"})
+                            content={"status":False, "message":"Check your password"})
     
     # if not up_pass.is_verify == True:
     #     return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,

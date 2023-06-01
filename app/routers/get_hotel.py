@@ -130,7 +130,7 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_us
         
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "Sorry, this hotel has no offer"})
+                            content={"status": False, "message": "hotel does not currently have any offers available."})
         tz = pytz.timezone('Europe/Athens')
         remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
         days, seconds = divmod(remaining_time.seconds, 86400)
@@ -162,7 +162,7 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db), current_user: in
 
     if not usermodel:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no offer"})
+                            content={"status": False, "message": "Hotel does not currently have any offers available."})
     
     get_last_scan = db.query(models.Offer_Scan).filter(models.Offer_Scan.offer_id == offer_id,
                                                            models.Offer_Scan.user_id == current_user.id).order_by(
@@ -204,14 +204,14 @@ def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(g
                                                models.CreateMenu.category_id == category_id).order_by(models.CreateMenu.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"Sorry this menu is not added yet"})
+                            content={"status":False, "message":"Menu has not been added yet."})
     
     resp = []
     for test in check:
         usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no menu"})
+                            content={"status": False, "message": "Hotel does not possess a menu"})
         usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
         offer_data = {
             'id': usermodel.id,
@@ -235,14 +235,14 @@ def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
     check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).order_by(models.Create_Event.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This id is not exist"})
+                            content={"status": False, "message": "This ID is not exist"})
     
     resp = []
     for test in check:
         usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no event"})
+                            content={"status": False, "message": "Hotel does not currently have any events taking place"})
         offer_data = {
             'id': usermodel.id,
             'event_name': usermodel.event_name,
@@ -286,7 +286,7 @@ def get_category(db: Session = Depends(get_db)):
         usermodel = db.query(models.Create_category).filter(models.Create_category.id == test.id).first()
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry this hotel have no event"})
+                            content={"status": False, "message": "Hotel does not currently have any events taking place."})
         offer_data = {
             'id': usermodel.id,
             'category_name': usermodel.category_name,

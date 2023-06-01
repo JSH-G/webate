@@ -10,15 +10,15 @@ from app.schemas import raitings
 
 
 router= APIRouter(
-    tags=['Hotel Raiting']
+    tags=['Hotel Rating']
 )
 
-@router.get('/get_all_raiting', status_code=status.HTTP_200_OK)
+@router.get('/get_all_rating', status_code=status.HTTP_200_OK)
 def get_all_user(db: Session = Depends(get_db)):
     check = db.query(models.Rating).order_by(models.Rating.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This id is not exist"})
+                            content={"status": False, "message": "This ID does not exist"})
     resp = []
     for test in check:
         usermodel = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == test.hotel_id).first()
@@ -44,7 +44,7 @@ def create_rating(rating: raitings.RatingBase, db: Session = Depends(get_db), cu
     
     if attentication:
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status":False, "message":"you already rate this hotel"})
+                            content={"status":False, "message":"You have already rated this hotel"})
     
     db_rating = models.Rating(user_id = current_user.id, **rating.dict())
     db.add(db_rating)
@@ -73,7 +73,7 @@ def update_raiting(raiting_id: str, updte: raitings.UpdateRaiting, db: Session =
     if not check_user:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This ID is not exist"})
+                            content={"status":False, "message":"This ID does not exist."})
         
     else:
         check.update(updte.dict(), synchronize_session=False)
@@ -90,13 +90,13 @@ def delete_raiting(raiting_id: str, db: Session = Depends(get_db), current_user:
 
     if not check_user:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This ID is not exist"})
+                            content={"status":False, "message":"This ID does not exist."})
         
     checks = db.query(models.Rating).filter(models.Rating.user_id == current_user.id)
 
     if not checks:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You cann't able to performed action"})
+                            content={"status":False, "message":"You cannot perform the action"})
     
     
     check.delete(synchronize_session=False)

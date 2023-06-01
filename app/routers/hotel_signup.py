@@ -60,7 +60,7 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
     attentication = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == email.lower()).first()
     if attentication:
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status": False, "message": "This email is already exist"})
+                            content={"status": False, "message": "This email already exists."})
 
     bucket = client_s3.Bucket(S3_BUCKET_NAME)
     noow = str(datetime.now())
@@ -106,7 +106,7 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
         'device_token': new_hotel.device_token,
     }
 
-    return {"status": True, "message": "Successfully Hotel Added" ,"body": new_data}
+    return {"status": True, "message": "The hotel was successfully added" ,"body": new_data}
 
 
 @router.post('/email_verification_hotel', status_code=status.HTTP_200_OK)
@@ -120,7 +120,7 @@ def email_verification_hotel(otp: str, db: Session = Depends(get_db), current_us
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":f"This otp: {otp} is not correct"})
     
-    return {"status": True , "message":"Successfully Verify"}
+    return {"status": True , "message":"The verification process was successful."}
 
 @router.put('/forget_password', status_code=status.HTTP_200_OK)
 async def forget_password(pss: user.SendEmail, db: Session = Depends(get_db)):
@@ -175,7 +175,7 @@ def update_hotel_password(email: str, pss: user.UpdatePassword, db: Session = De
     
 
     
-    return {'status': True ,'message':'Your password updated successfuly'}
+    return {'status': True ,'message':'Your password updated successfully'}
 
 @router.put('/change_password_hotel', status_code=status.HTTP_200_OK)
 def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -196,6 +196,6 @@ def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db
                             content={"status":False, "message":"you are not able to perform this action"})
     
 
-    return {'status': True, 'message': "Your password change successfuly"}
+    return {'status': True, 'message': "Your password has changed successfully."}
 
 # @router.post()

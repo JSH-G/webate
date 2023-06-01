@@ -26,12 +26,12 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
     if (like.dir == True):
         if found_like:
             return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status":False, "message":f"{current_user.name} You already have add this hotel in favorite"})
+                            content={"status":False, "message":f"{current_user.name} You already have add this hotel to favorites"})
         
         new_like = models.Favorite_Hotel(hotel_id = like.hotel_id, user_id = current_user.id)
         db.add(new_like)
         db.commit()
-        return{"status": True, "message": "successfully added favorite"}
+        return{"status": True, "message": "Item has been successfully added to favorite."}
     
     else:
         if not found_like:
@@ -43,7 +43,7 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
         like_qurey.delete(synchronize_session=False)
         db.commit()
 
-        return {"status": True ,"message": "Successfully deleted favorite"}
+        return {"status": True ,"message": "Favorite item has been successfully deleted "}
     
 
 

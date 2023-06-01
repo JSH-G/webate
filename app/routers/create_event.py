@@ -78,7 +78,7 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
     else:
 
         return JSONResponse(status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                            content={"status":False, "message":"Sorry you are not eligble to do this if you want to create then contact to admin"})
+                            content={"status":False, "message":"Sorry, you are not eligible to do this. If you want to create, then contact the admin"})
 
     return responseDic
 
@@ -91,18 +91,18 @@ def update_event(event_id : str, update: event.EventOut ,db: Session = Depends(g
     if not check:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This event not exist"})
+                            content={"status":False, "message":"This event does not exist"})
     
     user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
                                                       models.Create_Event.id == event_id).first()
     
     if not user_check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You can't able to performed this action"})
+                            content={"status":False, "message":"You are not able to perform this action."})
     
     updte.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status":True ,"message":"Successfully updated event"}
+    return {"status":True ,"message":"Event has been successfully updated"}
 
 
 @router.delete('/delete_event', status_code=status.HTTP_200_OK)
@@ -114,19 +114,19 @@ def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int 
     if not check:
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This event not exist"})
+                            content={"status":False, "message":"This event does not exist"})
         
     user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
                                                       models.Create_Event.id == event_id).first()
     
     if not user_check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You can't able to performed this action"})
+                            content={"status":False, "message":"You are not able to perform this action"})
     
     dell.delete(synchronize_session=False)
     db.commit()
 
-    return {"status":True ,"message":"Successfully deleted the event"}
+    return {"status":True ,"message":"Event has been successfully deleted."}
 
 
 
@@ -136,14 +136,14 @@ def get_hotel_event(db: Session = Depends(get_db),current_user: int = Depends(oa
     check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This id is not exist"})
+                            content={"status": False, "message": "This ID does not exist"})
     
     resp = []
     for test in check:
         usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "sorry you have no event"})
+                            content={"status": False, "message": "Sorry, you have no event"})
         offer_data = {
             'id': usermodel.id,
             'event_name': usermodel.event_name,

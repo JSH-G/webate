@@ -89,7 +89,7 @@ def get_scan_offer_by_hotel(db: Session = Depends(get_db),
     
     if not scan_offer:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message":"sorry you have no scane offer"})
+                            content={"status": False, "message":"Sorry, you do not have any scan offers."})
     
     res = []
     total_scans = 0
@@ -135,7 +135,7 @@ def offer_scan(user_id: str, offer_id: str, db: Session = Depends(get_db),
     if offer_scan and (datetime.utcnow() - offer_scan.scan_time) < timedelta(hours=24):
 
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status": False, "message": "You already take this offer please wait for complete the time"})
+                            content={"status": False, "message": "You have already taken this offer. Please wait for the completion of the specified time"})
 
     
     else:
@@ -145,4 +145,4 @@ def offer_scan(user_id: str, offer_id: str, db: Session = Depends(get_db),
         db.commit()
         db.refresh(add_offer)
 
-    return {"status":True , "message":"Succesfully scan offer"}
+    return {"status":True , "message":"You have successfully scanned the offer."}

@@ -26,7 +26,7 @@ def get_all_hotel_admin(db: Session = Depends(get_db)):
 
     if not hotels:
         return  JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                             content={"status":False, "message": "sorry hotel not found "})
+                             content={"status":False, "message": "Sorry, hotel not found"})
 
     response = []
     for hotel in hotels:
