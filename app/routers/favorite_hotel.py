@@ -20,13 +20,15 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":f"This id {like.hotel_id} does not Exist"})
-    like_qurey = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == like.hotel_id,
+    like_query = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == like.hotel_id,
                                                  models.Favorite_Hotel.user_id == current_user.id)
-    found_like = like_qurey.first()
+    found_like = like_query.first()
     if (like.dir == True):
         if found_like:
-            return JSONResponse(status_code=status.HTTP_409_CONFLICT,
-                            content={"status":False, "message":f"{current_user.name} You already have add this hotel to favorites"})
+            like_query.delete(synchronize_session=False)
+            db.commit()
+            return JSONResponse(status_code=status.HTTP_200_OK,
+                content= { "status": True, "like": False, "message": "Item has been successfully remove to favorite."})
         
         new_like = models.Favorite_Hotel(hotel_id = like.hotel_id, user_id = current_user.id)
         db.add(new_like)
@@ -38,12 +40,6 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
 
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"Hotel does not exist"})
-        
-
-        like_qurey.delete(synchronize_session=False)
-        db.commit()
-
-        return {"status": True ,"message": "Favorite item has been successfully deleted "}
     
 
 
