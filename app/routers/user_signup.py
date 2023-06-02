@@ -87,61 +87,6 @@ def email_verification(otp: str, db: Session = Depends(get_db), current_user: in
     return {"status": True , "message":"Successfully Verify"}
 
 
-@router.put('/forget_password_user', status_code=status.HTTP_200_OK)
-async def forget_password_user(pss: user.SendEmail, db: Session = Depends(get_db)):
-
-    check = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.email == pss.email)
-
-    check_pass = check.first()
-
-    if check_pass:
-        ok = str(''.join(random.choice('0123456789') for _ in range(4)))
-        html = f"""<h1>This Otp is from webate verfication </h1></br>
-                <p><h1>{ok}</h1></p></br>
-                <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
-    
-        message = MessageSchema(
-            subject="Verification Code",
-            recipients= [pss.email],
-            body=html,
-            subtype=MessageType.html)
-        fm = FastMail(conf)
-        await fm.send_message(message)
-        check.update({'otp': ok}, synchronize_session=False)
-        db.commit()
-
-    else:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This email was not found."})
-    
-    otp_data  = {
-        'otp': ok
-    }
-
-    
-    return {'status': True, 'message': "Success", 'body': otp_data}
-
-@router.put('/update_user_password', status_code=status.HTTP_200_OK)
-def update_user_password(email: str, pss: user.UpdatePassword, db: Session = Depends(get_db)):
-
-    check = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.email == email)
-
-    check_pass = check.first()
-
-    if check_pass:
-        hash_password = utils.hash(pss.password)
-        pss.password = hash_password
-        check.update(pss.dict(), synchronize_session=False)
-        db.commit()
-
-    else:
-
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This email is not found"})
-    
-
-    return {'status': True, 'message': "Your password has been updated successfully."}
-
 
 @router.put('/change_password', status_code=status.HTTP_200_OK)
 def change_password(pss: user.UpdatePassword, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -163,3 +108,63 @@ def change_password(pss: user.UpdatePassword, db: Session = Depends(get_db), cur
     
 
     return {'status': True, 'message': "Your password has been changed successfully."}
+
+
+@router.post('/forget_password_user', status_code=status.HTTP_200_OK)
+async def forget_password( email: user.Email_Verification, db: Session = Depends(get_db)):
+
+    check_email = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.email == email.email)
+
+    if not check_email.first():
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Please! Check your email, this email not exist"})
+    
+
+    otp1 = str(''.join(random.choice('0123456789') for _ in range(4)))
+
+    html = f"""<p>{otp1}</p> """
+    message = MessageSchema(
+        subject="Forget Password",
+        recipients= [email.email],
+        body=html,
+        subtype=MessageType.html)
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    check_email.update({'otp': otp1}, synchronize_session=False)
+    db.commit()
+
+    return {'status': True, 'message': 'We have sent a verification code to your email', 'body': otp1}
+
+
+@router.post('/forget_password_otp_user', status_code=status.HTTP_200_OK)
+async def forget_password_otp( otp: user.Otp_Verification, db: Session = Depends(get_db)):
+
+    check_email = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.email == otp.email,
+                                                 models.User_Sign_Up.otp == otp.otp).first()
+
+    if not check_email:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Sorry! This OTP not matched"})
+    
+    return {'status': True, 'message': 'Congratulation,Your Otp is successfully match.'}
+
+
+@router.put("/forget_update_password_user",status_code=status.HTTP_200_OK)
+def update_password( pss: user.Update_Password, db: Session = Depends(get_db)):
+
+    update_password = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.email == pss.email)
+    up_pass = update_password.first()
+
+    if not up_pass:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Please! Check your email, this email not exist"})
+    
+
+    hash_password = utils.hash(pss.password)
+    pss.password = hash_password
+
+    update_password.update(pss.dict(), synchronize_session=False)
+    db.commit()
+
+    return { "status": True ,"message": "Congratulations! Your password has been successfully changed."}

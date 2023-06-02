@@ -18,3 +18,16 @@ class SendEmail(BaseModel):
 
 class UpdatePassword(BaseModel):
     password: str
+
+
+class Email_Verification(BaseModel):
+    email: EmailStr
+
+
+class Otp_Verification(BaseModel):
+    email: EmailStr
+    otp: str
+
+class Update_Password(BaseModel):
+    email: EmailStr
+    password: str

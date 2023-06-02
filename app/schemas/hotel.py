@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 from pydantic.types import conint
 
 
-class CreateUser(BaseModel):
+class CreateHotel(BaseModel):
     name: str
     email: EmailStr
     password: str

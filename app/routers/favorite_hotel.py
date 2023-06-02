@@ -28,12 +28,12 @@ def favorite_hotel(like: favorite.FavoriteHotel, db: Session = Depends(get_db),
             like_query.delete(synchronize_session=False)
             db.commit()
             return JSONResponse(status_code=status.HTTP_200_OK,
-                content= { "status": True, "like": False, "message": "Item has been successfully remove to favorite."})
+                content= { "status": True, "like": False, "message": "Hotel has been successfully remove to favorite."})
         
         new_like = models.Favorite_Hotel(hotel_id = like.hotel_id, user_id = current_user.id)
         db.add(new_like)
         db.commit()
-        return{"status": True, "message": "Item has been successfully added to favorite."}
+        return{"status": True, "message": "Hotel has been successfully added to favorite."}
     
     else:
         if not found_like:

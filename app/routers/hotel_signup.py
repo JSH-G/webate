@@ -57,29 +57,34 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
     new_hotel.latitude = latitude
     new_hotel.otp = str(''.join(random.choice('0123456789') for _ in range(4)))
 
-    attentication = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == email.lower()).first()
-    if attentication:
+    authentication = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == email.lower()).first()
+    if authentication:
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
                             content={"status": False, "message": "This email already exists."})
 
+
     bucket = client_s3.Bucket(S3_BUCKET_NAME)
-    noow = str(datetime.now())
-    bucket.upload_fileobj(hotel_image.file, f"{noow}{hotel_image.filename}")
-    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{hotel_image.filename}"
+    safeEmail = new_hotel.email.replace(".", "_")
+    bucket.upload_fileobj(hotel_image.file, f"{safeEmail}.jpg")
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{safeEmail}.jpg"    
     new_hotel.hotel_image_url = upload_url
 
 
-    bucket.upload_fileobj(hotel_logo.file, f"{noow}{hotel_logo.filename}")
-    upload_url_logo = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{hotel_logo.filename}"
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(hotel_logo.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(hotel_logo.file, modified_filename)
+    upload_url_logo = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
     new_hotel.logo_image_url = upload_url_logo
 
     db.add(new_hotel)
     db.commit()
     db.refresh(new_hotel)
 
-    html = f"""<h1>This Otp is from webate verfication </h1></br>
+    html = f"""<h1>This Otp is from We-Bate verification </h1></br>
                 <p><h1>{new_hotel.otp}</h1></p></br>
-                <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
+                <h2>If you don't know please contact us +XXXXXXXXX</h2>"""
     
     message = MessageSchema(
         subject="Verification Code",
@@ -109,6 +114,51 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
     return {"status": True, "message": "The hotel was successfully added" ,"body": new_data}
 
 
+
+@router.put("/update_hotel_image",status_code=status.HTTP_200_OK)
+async def update_hotel_image(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+
+    updater = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == current_user.id)
+    post = updater.first()
+
+    if post == None:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"status": False, "message":"You are not authorized to perform this action."})
+
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    safeEmail = current_user.email.replace(".", "_")
+    bucket.upload_fileobj(file.file, f"{safeEmail}.jpg")
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{safeEmail}.jpg"
+
+    updater.update({'hotel_image_url': upload_url}, synchronize_session=False)
+    db.commit()
+        
+    return {"status":True, "message": "Congratulations, your image has been successfully uploaded!", "body": upload_url}
+
+@router.put("/update_hotel_logo",status_code=status.HTTP_200_OK)
+async def update_hotel_logo(logo: UploadFile = File(...), db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+
+    updater = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == current_user.id)
+    post = updater.first()
+
+    if post == None:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"status": False, "message":"You are not authorized to perform this action."})
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(logo.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(logo.file, modified_filename)
+    upload_url_logo = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
+
+    updater.update({'logo_image_url': upload_url_logo}, synchronize_session=False)
+    db.commit()
+        
+    return {"status":True, "message": "Congratulations, your image has been successfully uploaded!", "body": upload_url_logo}
+
+
+
 @router.post('/email_verification_hotel', status_code=status.HTTP_200_OK)
 def email_verification_hotel(otp: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
 
@@ -122,60 +172,7 @@ def email_verification_hotel(otp: str, db: Session = Depends(get_db), current_us
     
     return {"status": True , "message":"The verification process was successful."}
 
-@router.put('/forget_password', status_code=status.HTTP_200_OK)
-async def forget_password(pss: user.SendEmail, db: Session = Depends(get_db)):
 
-    check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == pss.email)
-
-    check_pass = check.first()
-
-    if check_pass:
-        ok = str(''.join(random.choice('0123456789') for _ in range(4)))
-        html = f"""<h1>This Otp is from webate verfication </h1></br>
-                <p><h1>{ok}</h1></p></br>
-                <h2>If you donot know please contact us +XXXXXXXXX</h2>"""
-    
-        message = MessageSchema(
-            subject="Verification Code",
-            recipients= [pss.email],
-            body=html,
-            subtype=MessageType.html)
-        fm = FastMail(conf)
-        await fm.send_message(message)
-        check.update({'otp': ok}, synchronize_session=False)
-        db.commit()
-
-    else:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This email is not found"})
-    otp_data  = {
-        'otp': ok
-    }
-
-    
-    return {'status': True, 'message': "Success", 'body': otp_data}
-
-@router.put('/update_hotel_password', status_code=status.HTTP_200_OK)
-def update_hotel_password(email: str, pss: user.UpdatePassword, db: Session = Depends(get_db)):
-
-    check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == email)
-
-    check_pass = check.first()
-
-    if check_pass:
-        hash_password = utils.hash(pss.password)
-        pss.password = hash_password
-        check.update(pss.dict(), synchronize_session=False)
-        db.commit()
-
-    else:
-
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"This email is not found"})
-    
-
-    
-    return {'status': True ,'message':'Your password updated successfully'}
 
 @router.put('/change_password_hotel', status_code=status.HTTP_200_OK)
 def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -199,3 +196,63 @@ def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db
     return {'status': True, 'message': "Your password has changed successfully."}
 
 # @router.post()
+
+@router.post('/forget_password_hotel', status_code=status.HTTP_200_OK)
+async def forget_password( email: user.Email_Verification, db: Session = Depends(get_db)):
+
+    check_email = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == email.email)
+
+    if not check_email.first():
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Please! Check your email, this email not exist"})
+    
+
+    otp1 = str(''.join(random.choice('0123456789') for _ in range(4)))
+
+    html = f"""<p>{otp1}</p> """
+    message = MessageSchema(
+        subject="Forget Password",
+        recipients= [email.email],
+        body=html,
+        subtype=MessageType.html)
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    check_email.update({'otp': otp1}, synchronize_session=False)
+    db.commit()
+
+    return {'status': True, 'message': 'We have sent a verification code to your email', 'body': otp1}
+
+
+
+@router.post('/forget_password_otp', status_code=status.HTTP_200_OK)
+async def forget_password_otp( otp: user.Otp_Verification, db: Session = Depends(get_db)):
+
+    check_email = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == otp.email,
+                                                 models.Hotel_Sign_up.otp == otp.otp).first()
+
+    if not check_email:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Sorry! This OTP not matched"})
+    
+    return {'status': True, 'message': 'Congratulation,Your Otp is successfully match.'}
+
+
+@router.put("/forget_update_password",status_code=status.HTTP_200_OK)
+def update_password( pss: user.Update_Password, db: Session = Depends(get_db)):
+
+    update_password = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.email == pss.email)
+    up_pass = update_password.first()
+
+    if not up_pass:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "Please! Check your email, this email not exist"})
+    
+
+    hash_password = utils.hash(pss.password)
+    pss.password = hash_password
+
+    update_password.update(pss.dict(), synchronize_session=False)
+    db.commit()
+
+    return { "status": True ,"message": "Congratulations! Your password has been successfully changed."}
