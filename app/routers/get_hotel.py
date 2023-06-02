@@ -347,6 +347,11 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
 @router.get("/get_offer", status_code=status.HTTP_200_OK)
 def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_current_user) ):
 
+
+    if current_user.is_verify == False:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED,
+                            content={"status": False, "message": "Please, verify your email to avail this offers"})
+
     res = {
         "user": str(current_user.id),
             "offer_id": offer_id
