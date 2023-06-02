@@ -243,7 +243,8 @@ def delete_menu_by_admin(menu_id: str,db: Session = Depends(get_db), current_use
 @router.get('/get_admin_resturant_event', status_code=status.HTTP_200_OK)
 def get_admin_resturant_event(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).order_by(models.Create_Event.created_at.desc()).all()
+    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id,
+                                                 models.Create_Event.is_active == False).order_by(models.Create_Event.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "This id is not exist"})
@@ -293,14 +294,14 @@ def update_event_by_admin(event_id : str, update: event.EventOut ,db: Session = 
 @router.delete('/delete_event_by_admin', status_code=status.HTTP_200_OK)
 def delete_event_by_admin(event_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
-    dell = db.query(models.Create_Event).filter(models.Create_Event.id == event_id)
+    dell = db.query(models.Create_Event).filter(models.Create_Event.id == event_id, models.Create_Event.is_active == False)
     check = dell.first()
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This event not exist"})
     
-    dell.delete(synchronize_session=False)
+    dell.update({'is_active': True},synchronize_session=False)
     db.commit()
 
     return {"status":True ,"message":"Successfully deleted the event by an administrator"}

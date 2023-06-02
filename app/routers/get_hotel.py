@@ -232,7 +232,8 @@ def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(g
 @router.get('/get_resturant_event', status_code=status.HTTP_200_OK)
 def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id).order_by(models.Create_Event.created_at.desc()).all()
+    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id,
+                                                 models.Create_Event.is_active == False).order_by(models.Create_Event.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "This ID is not exist"})
