@@ -25,11 +25,12 @@ def login_hotel(device_token: str = Body(None), user_credentials: OAuth2Password
 
     if up_pass == None:
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
-                            content={"status":False, "message":"Credentials not found."})
-
+                            content={"status":False, "message": "This email is not valid!"})
+    
     if not utils.verify(user_credentials.password, up_pass.password):
+
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
-                            content={"status":False, "message":"Credentials not found."})
+                            content={"status":False, "message": "Incorrect password"})
     
     # if not up_pass.is_verify == True:
     #     return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
