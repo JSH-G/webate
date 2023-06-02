@@ -1,6 +1,4 @@
-from typing import List, Optional
-import uuid
-from fastapi import status, HTTPException, Depends, APIRouter
+from fastapi import status,  Depends, APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app import oauth2

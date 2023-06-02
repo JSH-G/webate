@@ -1,20 +1,16 @@
-from typing import List, Optional
-import uuid, os
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+import os
+from fastapi import UploadFile, status, Depends, APIRouter, Form, File
 from fastapi.responses import JSONResponse
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
+import boto3, datetime,  random
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
 from app.schemas import user
 from app import utils
-import requests
-from twilio.rest import Client
 
 router= APIRouter(
     tags=['Hotel SignUp']
@@ -195,7 +191,6 @@ def change_password_hotel(pss: user.UpdatePassword, db: Session = Depends(get_db
 
     return {'status': True, 'message': "Your password has changed successfully."}
 
-# @router.post()
 
 @router.post('/forget_password_hotel', status_code=status.HTTP_200_OK)
 async def forget_password( email: user.Email_Verification, db: Session = Depends(get_db)):

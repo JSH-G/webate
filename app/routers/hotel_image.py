@@ -1,20 +1,13 @@
-from typing import List, Optional
-import uuid, os
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from typing import List
+from fastapi import  UploadFile, status, Depends, APIRouter, File
 from fastapi.responses import JSONResponse
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
+import boto3, datetime
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
-from app.schemas import user
-from app import utils
-import requests
-from twilio.rest import Client
 
 router= APIRouter(
     tags=['Hotel Gallery']

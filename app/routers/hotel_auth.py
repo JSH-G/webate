@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException, Body
+from fastapi import APIRouter, Depends, status,Body
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.models import models
@@ -7,6 +7,8 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from .. import utils, oauth2
 from json import JSONEncoder
 from uuid import UUID
+
+
 JSONEncoder_olddefault = JSONEncoder.default
 def JSONEncoder_newdefault(self, o):
     if isinstance(o, UUID): return str(o)
@@ -32,9 +34,6 @@ def login_hotel(device_token: str = Body(None), user_credentials: OAuth2Password
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
                             content={"status":False, "message": "Incorrect password"})
     
-    # if not up_pass.is_verify == True:
-    #     return JSONResponse(status_code=status.HTTP_403_FORBIDDEN,
-    #                         content={"status":False, "message": "please verify your email"})
 
     acees_token = oauth2.create_access_token(data={"user_id": up_pass.id})
     

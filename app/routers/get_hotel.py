@@ -1,19 +1,15 @@
-from typing import List, Optional
 from io import BytesIO
-from PIL import Image
 import pytz
 import qrcode
 from fastapi import Response, status, Depends, APIRouter
 from fastapi.responses import JSONResponse
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
-from datetime import datetime, date
-from app import oauth2, config
+import  datetime
+from datetime import datetime
+from app import oauth2
 from app.models import models
-from twilio.rest import Client
 
 router= APIRouter(
     tags=['User Side Hotel']
@@ -262,18 +258,6 @@ def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
     return {"status": True, "message": "Success" ,"body": resp}
 
-
-
-# @router.get('/get_one_event', status_code=status.HTTP_200_OK, response_model=event.EventOut)
-# def get_one_event(event_id: str, db: Session = Depends(get_db)):
-
-#     check = db.query(models.Create_Event).filter(models.Create_Event.id == event_id).first()
-
-#     if not check:
-#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-#                             content={"status": False, "message": "This id is not exist"})
-
-#     return check
 
 
 @router.get('/get_all_category', status_code=status.HTTP_200_OK)

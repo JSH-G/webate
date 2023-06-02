@@ -1,21 +1,15 @@
-from typing import List, Optional
 import pytz
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi import UploadFile, status, Depends, APIRouter, Form, File
 from fastapi.responses import JSONResponse
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
-from app import oauth2
-from datetime import date
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
+import boto3, datetime
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
 from app.schemas import offer
-from app import utils
-import requests
-from twilio.rest import Client
+import os
+
 
 router= APIRouter(
     tags=['Create Offer']
@@ -49,9 +43,12 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
     new_offer.is_unlimited = is_unlimited
 
     bucket = client_s3.Bucket(S3_BUCKET_NAME)
-    noow = str(datetime.now())
-    bucket.upload_fileobj(offer_image.file, f"{noow}{offer_image.filename}")
-    upload_url_logo = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{offer_image.filename}"
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(offer_image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(offer_image.file, modified_filename)
+    upload_url_logo = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
     new_offer.offer_image = upload_url_logo
 
     db.add(new_offer)

@@ -1,17 +1,12 @@
-from typing import List, Optional
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from fastapi import UploadFile, status, Depends, APIRouter, Form, File
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
+import boto3, datetime
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
-from app import utils
-import requests
-from twilio.rest import Client
+import os
 
 router= APIRouter(
     tags=['Add Category']
@@ -32,9 +27,12 @@ def add_category(category_name: str = Form(...), image: UploadFile = File(...), 
     add_new.category_name = category_name
 
     bucket = client_s3.Bucket(S3_BUCKET_NAME)
-    noow = str(datetime.now())
-    bucket.upload_fileobj(image.file, f"{noow}{image.filename}")
-    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{image.filename}"
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(image.file, modified_filename)
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
     add_new.category_image = upload_url
     db.add(add_new)
     db.commit()

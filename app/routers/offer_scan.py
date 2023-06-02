@@ -2,7 +2,6 @@ from datetime import timedelta
 from fastapi import status, Depends, APIRouter
 from fastapi.responses import JSONResponse
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
 import datetime

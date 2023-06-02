@@ -1,19 +1,16 @@
-from typing import List, Optional
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi import  UploadFile, status, Depends, APIRouter
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from fastapi.responses import JSONResponse
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
+import boto3, datetime, random
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
 from app.schemas import admin, user
 from app import utils
-import requests
-from twilio.rest import Client
+
 
 router= APIRouter(
     tags=['Admin SignUp']
@@ -95,8 +92,7 @@ def email_verification_admin(otp: str, db: Session = Depends(get_db), current_us
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":f"this otp: {otp} is not correct"})
 
-        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"This otp: {otp} is not correct")
-    
+       
     return {'status': True, 'message': "Your email successfully verified"}
 
 @router.put("/profile_image",status_code=status.HTTP_200_OK)

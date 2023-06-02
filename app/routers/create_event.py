@@ -1,21 +1,15 @@
-from typing import List, Optional
-import uuid, os
 from datetime import time, date
-from fastapi import HTTPException, Response, UploadFile, status, Depends, APIRouter, Form, File
+from fastapi import UploadFile, status, Depends, APIRouter, Form, File
 from fastapi.responses import JSONResponse
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
+import boto3, datetime
+import os
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
 from app.schemas import event
-from app import utils
-import requests
-from twilio.rest import Client
 
 router= APIRouter(
     tags=['Create Event']
@@ -51,10 +45,14 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
         new_event.hotel_id = current_user.id
         new_event.is_active = is_active
 
+
         bucket = client_s3.Bucket(S3_BUCKET_NAME)
-        noow = str(datetime.now())
-        bucket.upload_fileobj(event_vedio_image.file, f"{noow}{event_vedio_image.filename}")
-        upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{noow}{event_vedio_image.filename}"
+        now = str(datetime.now())
+        check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+        filename, extension = os.path.splitext(event_vedio_image.filename)
+        modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+        bucket.upload_fileobj(event_vedio_image.file, modified_filename)
+        upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
         new_event.event_image_vedio = upload_url
 
 
@@ -81,6 +79,9 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
                             content={"status":False, "message":"Sorry, you are not eligible to do this. If you want to create, then contact the admin"})
 
     return responseDic
+
+
+
 
 @router.put('/update_event', status_code=status.HTTP_200_OK)
 def update_event(event_id : str, update: event.EventOut ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):

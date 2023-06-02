@@ -1,20 +1,14 @@
-from typing import List, Optional
-from io import BytesIO
-from PIL import Image
 import pytz
-import qrcode
-from fastapi import Response, status, Depends, APIRouter
+from fastapi import status, Depends, APIRouter
 from fastapi.responses import JSONResponse
 from app import oauth2
-import onesignal_sdk
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime, string, random
-from datetime import datetime, date
-from app import oauth2, config
+import datetime
+from datetime import datetime
+from app import oauth2
 from app.schemas import offer, menu, event
 from app.models import models
-from twilio.rest import Client
 
 router= APIRouter(
     tags=['Admin Side Hotel']
@@ -125,7 +119,6 @@ def get_admin_resturant_offer(hotel_id: str, db: Session = Depends(get_db), curr
             'offer_image': usermodel.offer_image,
             'discount': usermodel.discount,
             'end_date': remaining_time_str,
-            # 'last_scan': usermodel2,
             'is_unlimited': usermodel.is_unlimited,
             'created_at': usermodel.created_at,
         }

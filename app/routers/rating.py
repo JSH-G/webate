@@ -2,7 +2,6 @@ from fastapi import APIRouter, status, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app import oauth2
-from typing import List
 from app.database import  get_db
 from sqlalchemy.orm import Session
 from app.models import models
