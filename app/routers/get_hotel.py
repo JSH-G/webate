@@ -127,6 +127,7 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_us
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "hotel does not currently have any offers available."})
+        
         tz = pytz.timezone('Europe/Athens')
         remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
         days, seconds = divmod(remaining_time.seconds, 86400)
