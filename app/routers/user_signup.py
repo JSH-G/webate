@@ -12,7 +12,6 @@ from app import utils
 
 
 router= APIRouter(
-    # prefix="/posts",
     tags=['User SignUp']
 )
 
@@ -48,9 +47,25 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(add_user)
 
-    html = f"""<h1>This Otp is from We-bate verification </h1></br>
-                <p><h1>{otp_update}</h1></p></br>
-                <h2>If you don't know please contact us +XXXXXXXXX</h2>"""
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome to We-Bate - Unleash Your Creativity!</title>
+</head>
+<body>
+  <h1>Welcome to We-Bate - Unleash Your Creativity!</h1>
+  <p>Dear {add_user.name},</p>
+  <p>Congratulations! You've successfully joined We-Bate, the ultimate platform for unleashing your creativity and connecting with fellow artists. We're thrilled to have you on board, and we can't wait to see the incredible masterpieces you'll create!</p>
+  <p>Now that your account is all set up, let's dive into the world of endless inspiration and artistic collaboration. But before we begin, we need to verify your account with a unique One-Time Password (OTP).</p>
+  <p>Here's your personalized OTP: <strong>{otp_update}</strong>. Please keep it handy as you'll need it to access all the exciting features awaiting you.</p>
+  <p>Follow these steps to get started on your artistic journey:</p>
+  <p>With We-Bate, you have a platform to express yourself, receive feedback, and grow as an artist. We're committed to providing a supportive and vibrant community that nurtures your creativity.</p>
+  <p>If you have any questions, need guidance, or simply want to share your experience, our friendly support team is here to assist you. We're just an email away!</p>
+  <p>Get ready to immerse yourself in a world of artistry, [User]. We're excited to witness the magic you'll create on We-Bate. Let your creativity soar!</p>
+  <p>Best regards,</p>
+  <p>The We-Bate Team</p>
+</body>
+</html>"""
     
     message = MessageSchema(
         subject="Verification Code",
@@ -71,6 +86,52 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
     }
 
     return {"status": True, "message": "Successfully signed up" ,"body": new_data}
+
+@router.post('/send_email_user', status_code=status.HTTP_200_OK)
+async def send_email_user(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    # if current_user.is_verify == True:
+    #     return JSONResponse(status_code=status.HTTP_409_CONFLICT,
+    #                         content={"status":False, "message": "Your email already verify"})
+    check = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.id == current_user.id)
+
+    if check.first().is_verify == True:
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT,
+                            content={"status":False, "message": "Your email already verify"})
+
+    otp_update = str(''.join(random.choice('0123456789') for _ in range(4)))
+    check.update({'otp': otp_update}, synchronize_session=False)
+    db.commit()
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome to We-Bate - Unleash Your Creativity!</title>
+</head>
+<body>
+  <h1>Welcome to We-Bate - Unleash Your Creativity!</h1>
+  <p>Dear {current_user.name},</p>
+  <p>Congratulations! You've successfully joined We-Bate, the ultimate platform for unleashing your creativity and connecting with fellow artists. We're thrilled to have you on board, and we can't wait to see the incredible masterpieces you'll create!</p>
+  <p>Now that your account is all set up, let's dive into the world of endless inspiration and artistic collaboration. But before we begin, we need to verify your account with a unique One-Time Password (OTP).</p>
+  <p>Here's your personalized OTP: <strong>{otp_update}</strong>. Please keep it handy as you'll need it to access all the exciting features awaiting you.</p>
+  <p>Follow these steps to get started on your artistic journey:</p>
+  <p>With We-Bate, you have a platform to express yourself, receive feedback, and grow as an artist. We're committed to providing a supportive and vibrant community that nurtures your creativity.</p>
+  <p>If you have any questions, need guidance, or simply want to share your experience, our friendly support team is here to assist you. We're just an email away!</p>
+  <p>Get ready to immerse yourself in a world of artistry, [User]. We're excited to witness the magic you'll create on We-Bate. Let your creativity soar!</p>
+  <p>Best regards,</p>
+  <p>The We-Bate Team</p>
+</body>
+</html>"""
+    message = MessageSchema(
+        subject="Verification Code",
+        recipients= [current_user.email],
+        body=html,
+        subtype=MessageType.html)
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    return {'status': True, 'message': 'Successfully otp send', "otp": otp_update}
+
+
 
 @router.post('/email_verification', status_code=status.HTTP_200_OK)
 def email_verification(otp: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
