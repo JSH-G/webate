@@ -27,9 +27,9 @@ def create_menu(name: str = Form(...),price: str = Form(...),menu_image: UploadF
                 discription: str = Form(...),category_id: str = Form(...),
                 db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
-    check = db.query(models.Create_category).filter(models.Create_category.id == category_id).first()
+    check1 = db.query(models.Create_category).filter(models.Create_category.id == category_id).first()
 
-    if not check:
+    if not check1:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This ID does not exist"})
     
@@ -62,7 +62,7 @@ def create_menu(name: str = Form(...),price: str = Form(...),menu_image: UploadF
                         'price': new_menu.price,
                         'discription': new_menu.discription,
                         'menu_image': new_menu.menu_image,
-                        'category': check.category_name,
+                        'category': check1.category_name,
                         'hotel_name': current_user.name,
                         'hotel_image': current_user.hotel_image_url
                         }
