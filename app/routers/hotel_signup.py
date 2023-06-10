@@ -107,7 +107,7 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
         'device_token': new_hotel.device_token,
     }
 
-    return {"status": True, "message": "The hotel was successfully added" ,"body": new_data}
+    return {"status": True, "message": "The hotel successfully added" ,"body": new_data}
 
 
 

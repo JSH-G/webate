@@ -40,7 +40,8 @@ def login_hotel(device_token: str = Body(None), user_credentials: OAuth2Password
     Data = {'status': True, 'message' : 'Account Login', 
                             'id': up_pass.id,
                             'name': up_pass.name,
-                            'email': up_pass.email,                         
+                            'email': up_pass.email,    
+                            'is_verify': up_pass.is_verify,                      
                             'device_token': up_pass.device_token
 
     }

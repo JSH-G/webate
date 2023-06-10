@@ -40,6 +40,7 @@ def login_admin(device_token: str = Body(None), user_credentials: OAuth2Password
                             'id': up_pass.id,
                             'name': up_pass.name,
                             'email': up_pass.email, 
+                            'is_verify': up_pass.is_verify, 
                             'login_type': up_pass.login_type,                        
                             'device_token': up_pass.device_token
 

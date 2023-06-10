@@ -78,6 +78,7 @@ class Create_Offer(Base):
     closing = Column(DateTime, nullable=True)
     discription = Column(String, nullable=True)
     discount = Column(String, nullable=True)
+    price = Column(String, nullable=True)
     hotel_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete="CASCADE"), default=uuid.uuid4)
     is_active = Column(Boolean, server_default='FALSE', nullable=False)
     is_unlimited = Column(Boolean, server_default='FALSE', nullable=False)
@@ -186,3 +187,16 @@ class Hotel_Gallery_Image(Base):
     hotel_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete="CASCADE"), primary_key=True, default=uuid.uuid4)
     image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/2023-04-06_15_23_29_299687no-profile-picture-icon_webp.jpg')
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+
+# class Notification(Base):
+
+#     __tablename__ = "notification"
+
+#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+#     notify_message = Column(String, nullable=True)
+#     notify_purpose_id = Column(String, nullable=True)
+#     notify_type = Column(String, nullable=True)
+#     notify_send_id = Column(String, nullable=True)
+#     notify_receive_id = Column(UUID(as_uuid=True), ForeignKey("user_signup.id", ondelete= "CASCADE"), default= uuid.uuid4)
+#     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default=text('now()'))

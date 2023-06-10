@@ -15,6 +15,34 @@ router= APIRouter(
     tags=['User Side Hotel']
 )
 
+
+@router.get('/notification', status_code=status.HTTP_200_OK)
+def notification(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    check_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel_id,
+                                                            models.Favorite_Hotel.user_id == current_user.id).first()
+    
+    if check_favorite:
+
+        supermodel = True
+    else:
+        supermodel = False
+    
+    check_pro = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id,
+                                                      models.Hotel_Sign_up.is_pro == True).first()
+    if check_pro:
+
+        supermodel1 = True
+    else:
+        supermodel1 = False
+    
+    data = {
+        'is_favorite': supermodel,
+        'hotel_upgrade': supermodel1
+    }
+
+    return {'status': True, 'message': 'success', 'body': data}
+
 @router.get('/get_hotel_info', status_code=status.HTTP_200_OK)
 def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
     hotel = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id).first()
