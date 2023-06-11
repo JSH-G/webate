@@ -337,11 +337,13 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel.hotel_id).first()
+        data = []
         respons = {
             'id': check.id,
             'hotel_name': check.name,
             'email': check.email,
             'hotel_discription': check.discription,
+            'gallery': data, 
             'longitude': check.longitude,
             'latitude':check.latitude,
             'phone_number': check.phone_number,
@@ -353,6 +355,14 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
             'rating_average': round(rating_average, 1)
         }
         response.append(respons)
+
+        check_image = db.query(models.Hotel_Gallery_Image).filter(models.Hotel_Gallery_Image.hotel_id == hotel.id).all()
+        for image in check_image:
+            image_data = {
+                'image_id': image.id,
+                'image': image.image
+            }
+            data.append(image_data)
 
     return {"status": True,"message":"Success","body":response}
 
