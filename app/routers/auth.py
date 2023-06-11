@@ -36,15 +36,17 @@ def login(device_token: str = Body(None), user_credentials: OAuth2PasswordReques
     
     acees_token = oauth2.create_access_token(data={"user_id": up_pass.id})
     
-    Data = {'status': True, 'message' : 'Account Login', 
+    Data = {'status': True, 'message' : 'Account Login',
+                            "access_token": acees_token,
+                            "token_type":"bearer",
                             'id': up_pass.id,
                             'name': up_pass.name,
                             'email': up_pass.email,  
-                            'is_verify': up_pass.is_verify,                       
+                            'email_verify': up_pass.is_verify,                       
                             'device_token': up_pass.device_token
 
     }
     user.update({'device_token': str(device_token)}, synchronize_session=False)
     db.commit()
 
-    return {"access_token": acees_token, "token_type":"bearer", "Data_User": Data}
+    return {"Data_User": Data}
