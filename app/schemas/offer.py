@@ -10,6 +10,7 @@ class OfferUpdate(BaseModel):
     offer_on: str
     opening: str
     closing: str
+    price: str
     discription: str
     discount: str
     is_unlimited: bool 

@@ -96,6 +96,7 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
         'id': new_hotel.id,
         'name': new_hotel.name,
         'email': new_hotel.email,
+        'email_verify': new_hotel.is_verify, 
         'otp': new_hotel.otp,
         'discription':new_hotel.discription,
         'phone_number':new_hotel.phone_number,

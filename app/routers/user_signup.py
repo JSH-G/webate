@@ -81,6 +81,7 @@ async def user_signup(new_user: user.CreateUser, db: Session = Depends(get_db)):
         'id': add_user.id,
         'name': add_user.name,
         'email': add_user.email,
+        'email_verify': add_user.is_verify, 
         'device_token': add_user.device_token,
         'otp': otp_update
     }

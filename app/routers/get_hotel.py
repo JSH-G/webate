@@ -44,8 +44,15 @@ def notification(hotel_id: str, db: Session = Depends(get_db), current_user: int
     return {'status': True, 'message': 'success', 'body': data}
 
 @router.get('/get_hotel_info', status_code=status.HTTP_200_OK)
-def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
+def get_hotel_info(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     hotel = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id).first()
+
+    get_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel.id,
+                                                              models.Favorite_Hotel.user_id == current_user.id).first()
+    if get_favorite:
+        usermodel3 = True
+    else:
+        usermodel3 = False
 
 
     ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
@@ -63,6 +70,8 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
             'phone_number': hotel.phone_number,
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
+            'upgrade': hotel.is_pro,
+            'favorite' : usermodel3,
             'rating_total': rating_total,
             'rating_average': round(rating_average, 2)
         }
@@ -111,6 +120,7 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             'phone_number': hotel.phone_number,
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
+            'upgrade': hotel.is_pro,
             'favorite' : usermodel3,
             'rate_this_hotel': usermodel4,
             'rating_total': rating_total,
@@ -167,6 +177,7 @@ def get_resturant_offer(hotel_id: str, db: Session = Depends(get_db), current_us
             'id': usermodel.id,
             'name': usermodel.name,
             'offer_on': usermodel.offer_on,
+            'price': usermodel.price,
             'closing': usermodel.closing,
             'discription': usermodel.discription,
             'offer_image': usermodel.offer_image,
@@ -209,6 +220,7 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db), current_user: in
             'id': usermodel.id,
             'name': usermodel.name,
             'offer_on': usermodel.offer_on,
+            'price': usermodel.price,
             'closing': usermodel.closing,
             'discription': usermodel.discription,
             'offer_image': usermodel.offer_image,
@@ -217,6 +229,7 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db), current_user: in
             'last_scan': usermodel2,
             'is_unlimited': usermodel.is_unlimited,
             'created_at': usermodel.created_at,
+
         }
 
     return {"status": True, "message": "Success" ,"body": offer_data}
@@ -349,6 +362,7 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
             'phone_number': check.phone_number,
             'hotel_pic': check.hotel_image_url,
             'hotel_logo': check.logo_image_url,
+            'upgrade': check.is_pro,
             'favorite' : usermodel3,
             'rate_this_hotel': usermodel4,
             'rating_total': rating_total,
@@ -397,3 +411,52 @@ def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_curre
 
     return Response(content= image_bytes, media_type="image/png")
 
+@router.get('/get_one_event', status_code=status.HTTP_200_OK)
+def get_one_event(hotel_id: str, event_id: str, db: Session = Depends(get_db)
+                  , current_user: int = Depends(oauth2.get_current_user)):
+
+    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id,
+                                                 models.Create_Event.id == event_id,
+                                                 models.Create_Event.is_active == False).first()
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This ID is not exist"})
+
+    offer_data = {
+            'id': check.id,
+            'event_name': check.event_name,
+            'event_time': check.event_time,
+            'event_end_time': check.event_end_time,
+            'event_image_vedio': check.event_image_vedio,
+            'event_date': check.event_date,
+            'longitude':check.longitude,
+            'latitude':check.latitude,
+            'event_discription': check.discription,
+            'is_active': check.is_active
+    }
+
+    return {"status": True, "message": "Success" ,"body": offer_data}
+
+@router.get('/get_one_menu', status_code=status.HTTP_200_OK)
+def get_one_menu(hotel_id: str, category_id: str , menu_id: str , db: Session = Depends(get_db)
+                 , current_user: int = Depends(oauth2.get_current_user)):
+
+    check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
+                                               models.CreateMenu.category_id == category_id,
+                                               models.CreateMenu.id == menu_id).first()
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"Menu has not been added yet."})
+    
+    usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == check.category_id).first()
+
+    offer_data = {
+            'id': check.id,
+            'menu_name': check.menu_name,
+            'menu_image': check.menu_image,
+            'price': check.price,
+            'discription': check.discription,
+            'category_name': usermodel1.category_name,
+            'category_image': usermodel1.category_image
+        }
+    return {"status": True, "message": "Success" ,"body": offer_data}

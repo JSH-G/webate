@@ -27,7 +27,7 @@ client_s3 = boto3.resource(
 @router.post('/create_offer', status_code=status.HTTP_200_OK)
 def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: UploadFile = File(...),
                  opening: datetime = Form(...),closing: datetime = Form(...),discription: str = Form(...),
-                 discount: str = Form(...),is_unlimited: bool = Form(...),
+                 discount: str = Form(...),is_unlimited: bool = Form(...), price : str = Form(...),
                  db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
     
@@ -38,6 +38,7 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
     new_offer.closing = closing
     new_offer.discription = discription
     new_offer.discount = discount
+    new_offer.price = price
     new_offer.hotel_id = current_user.id
     new_offer.is_unlimited = is_unlimited
 
@@ -59,6 +60,7 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
                         'name_offer': new_offer.name,
                         'offer_on': new_offer.offer_on,
                         'offer_image': new_offer.offer_image,
+                        'price': new_offer.price,
                         'opening': new_offer.opening,
                         'closing': new_offer.closing,
                         'discription': new_offer.discription,
@@ -68,13 +70,13 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
                         'hotel_image': current_user.hotel_image_url
                         }
 
-    return {"status": True,"message":"Offer has been created successfully.","body":responseDic}
+    return {"status": True,"message":"Offer created successfully.","body":responseDic}
 
 @router.put('/update_offer', status_code=status.HTTP_200_OK)
 def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
-    updte = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id)
-    check = updte.first()
+    updater = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id)
+    check = updater.first()
 
     if not check:
 
@@ -88,7 +90,7 @@ def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depend
                             content={"status":False, "message":"You are not able to perform this action"})
     
     
-    updte.update(update.dict(), synchronize_session=False)
+    updater.update(update.dict(), synchronize_session=False)
     db.commit()
     return {"status":True ,"message":"Offer has been updated successfully."}
 
@@ -144,6 +146,7 @@ def get_hotel_offer(db: Session = Depends(get_db),current_user: int = Depends(oa
             'id': usermodel.id,
             'name': usermodel.name,
             'offer_on': usermodel.offer_on,
+            'price': usermodel.price,
             'closing': usermodel.closing,
             'discription': usermodel.discription,
             'offer_image': usermodel.offer_image,

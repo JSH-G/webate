@@ -49,4 +49,4 @@ def login_hotel(device_token: str = Body(None), user_credentials: OAuth2Password
     user.update({'device_token': str(device_token)}, synchronize_session=False)
     db.commit()
 
-    return {"token_type":"bearer", "access_token": acees_token,"Data_User": Data}
+    return {"token_type":"bearer","access_token": acees_token,"Data_User": Data}
