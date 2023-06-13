@@ -31,7 +31,6 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
                  db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
     
-    
     new_offer: models.Create_Offer = models.Create_Offer()
     new_offer.name = name
     new_offer.offer_on = offer_on

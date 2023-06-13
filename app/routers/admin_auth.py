@@ -37,8 +37,6 @@ def login_admin(device_token: str = Body(None), user_credentials: OAuth2Password
     acees_token = oauth2.create_access_token(data={"user_id": up_pass.id})
     
     Data = {'status': True, 'message' : 'Account Login', 
-                            "access_token": acees_token,
-                            "token_type":"bearer",
                             'id': up_pass.id,
                             'name': up_pass.name,
                             'email': up_pass.email, 
@@ -51,4 +49,4 @@ def login_admin(device_token: str = Body(None), user_credentials: OAuth2Password
     user.update({'device_token': str(device_token)}, synchronize_session=False)
     db.commit()
 
-    return {"Data_User": Data}
+    return { "access_token": acees_token, "token_type":"bearer", "Data_User": Data}
