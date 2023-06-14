@@ -412,11 +412,10 @@ def generate_qr_code(offer_id: str, current_user: int = Depends(oauth2.get_curre
     return Response(content= image_bytes, media_type="image/png")
 
 @router.get('/get_one_event', status_code=status.HTTP_200_OK)
-def get_one_event(hotel_id: str, event_id: str, db: Session = Depends(get_db)
+def get_one_event( event_id: str, db: Session = Depends(get_db)
                   , current_user: int = Depends(oauth2.get_current_user)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id,
-                                                 models.Create_Event.id == event_id,
+    check = db.query(models.Create_Event).filter(models.Create_Event.id == event_id,
                                                  models.Create_Event.is_active == False).first()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
@@ -438,11 +437,10 @@ def get_one_event(hotel_id: str, event_id: str, db: Session = Depends(get_db)
     return {"status": True, "message": "Success" ,"body": offer_data}
 
 @router.get('/get_one_menu', status_code=status.HTTP_200_OK)
-def get_one_menu(hotel_id: str, category_id: str , menu_id: str , db: Session = Depends(get_db)
+def get_one_menu(category_id: str , menu_id: str , db: Session = Depends(get_db)
                  , current_user: int = Depends(oauth2.get_current_user)):
 
-    check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
-                                               models.CreateMenu.category_id == category_id,
+    check = db.query(models.CreateMenu).filter(models.CreateMenu.category_id == category_id,
                                                models.CreateMenu.id == menu_id).first()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
