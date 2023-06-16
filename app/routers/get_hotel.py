@@ -1,7 +1,8 @@
 from io import BytesIO
+from typing import List
 import pytz
 import qrcode
-from fastapi import Response, status, Depends, APIRouter
+from fastapi import Response, status, Depends, APIRouter, Form
 from fastapi.responses import JSONResponse
 from app import oauth2
 from app.database import  get_db
@@ -17,31 +18,37 @@ router= APIRouter(
 
 
 @router.get('/notification', status_code=status.HTTP_200_OK)
-def notification(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def notification(hotel_ids: List[str] = Form(...), db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-    check_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel_id,
-                                                            models.Favorite_Hotel.user_id == current_user.id).first()
-    
-    if check_favorite:
+    check_array = hotel_ids[0].split(',')
 
-        supermodel = True
-    else:
-        supermodel = False
-    
-    check_pro = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id,
-                                                      models.Hotel_Sign_up.is_pro == True).first()
-    if check_pro:
+    resp = []
+    for hotel_id in check_array:
+        check_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel_id,
+                                                                models.Favorite_Hotel.user_id == current_user.id).first()
+        
+        if check_favorite:
 
-        supermodel1 = True
-    else:
-        supermodel1 = False
-    
-    data = {
-        'is_favorite': supermodel,
-        'hotel_upgrade': supermodel1
-    }
+            supermodel = True
+        else:
+            supermodel = False
+        
+        check_pro = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id,
+                                                        models.Hotel_Sign_up.is_pro == True).first()
+        if check_pro:
 
-    return {'status': True, 'message': 'success', 'body': data}
+            supermodel1 = True
+        else:
+            supermodel1 = False
+        
+        data = {
+            'hotel_id': hotel_id,
+            'is_favorite': supermodel,
+            'hotel_upgrade': supermodel1
+        }
+        resp.append(data)
+
+    return {'status': True, 'message': 'success', 'body': resp}
 
 @router.get('/get_hotel_info', status_code=status.HTTP_200_OK)
 def get_hotel_info(hotel_id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
