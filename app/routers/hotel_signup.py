@@ -9,7 +9,7 @@ import boto3, datetime,  random
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
-from app.schemas import user
+from app.schemas import user, hotel
 from app import utils
 
 router= APIRouter(
@@ -110,6 +110,18 @@ async def hotel_signup(hotel_name: str = Form(...), hotel_discription: str = For
 
     return {"status": True, "message": "The hotel successfully added" ,"body": new_data}
 
+@router.put('/update_hotel_info', status_code=status.HTTP_200_OK)
+def update_hotel_info(hotel_id: hotel.CreateHotel, db: Session = Depends(get_db)):
+
+    check = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id.id)
+
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={'status': False, 'message': 'This hotel is not exist.'})
+    
+    check.update(hotel_id.dict(), synchronize_session=False)
+    db.commit()
+    return {'status': True, 'message': 'Hotel Updated Successfully'} 
 
 
 @router.put("/update_hotel_image",status_code=status.HTTP_200_OK)

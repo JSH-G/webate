@@ -6,11 +6,11 @@ from pydantic.types import conint
 
 
 class CreateHotel(BaseModel):
+    id: str
     name: str
     email: EmailStr
-    password: str
-    device_token: str
     discription: str
     postal_code: str
-    def pre_process(self):
-        self.email = self.email.lower()
+    longitude: str
+    latitude: str
+    postal_code: str
