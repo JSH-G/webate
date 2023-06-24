@@ -303,7 +303,7 @@ def delete_event_by_admin(event_id: str,db: Session = Depends(get_db), current_u
 @router.delete('/delete_hotel_by_admin', status_code=status.HTTP_200_OK)
 def delete_hotel_by_admin(hotel_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
-    dell = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.id == hotel_id)
+    dell = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id)
     check = dell.first()
 
     if not check:
