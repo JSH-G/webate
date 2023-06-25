@@ -319,6 +319,10 @@ def delete_hotel_by_admin(hotel_id: str,db: Session = Depends(get_db), current_u
 def get_hotel_info_admin(hotel_id: hotel.Hotel, db: Session = Depends(get_db)):
     hotel = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id.hotel_id).first()
 
+    if not hotel:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={'status': False, 'message': 'This Hotel is not exist'})
+
 
     ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
     rating_total = sum(rating.rating for rating in ratings) if ratings else 0
