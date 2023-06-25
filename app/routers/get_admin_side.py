@@ -315,7 +315,7 @@ def delete_hotel_by_admin(hotel_id: str,db: Session = Depends(get_db), current_u
 
     return {"status":True ,"message":"Successfully deleted by an administrator"}
 
-@router.get('/get_hotel_info_admin', status_code=status.HTTP_200_OK)
+@router.post('/get_hotel_info_admin', status_code=status.HTTP_200_OK)
 def get_hotel_info_admin(hotel_id: hotel.Hotel, db: Session = Depends(get_db)):
     hotel = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id.hotel_id).first()
 
