@@ -17,7 +17,7 @@ router= APIRouter(
 )
 
 
-@router.get('/notification', status_code=status.HTTP_200_OK)
+@router.post('/notification', status_code=status.HTTP_200_OK)
 def notification(hotel_ids: List[str] = Form(...), db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     check_array = hotel_ids[0].split(',')
