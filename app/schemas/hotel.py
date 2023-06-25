@@ -14,3 +14,6 @@ class CreateHotel(BaseModel):
     longitude: str
     latitude: str
     postal_code: str
+
+class Hotel(BaseModel):
+    hotel_id: str
