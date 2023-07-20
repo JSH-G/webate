@@ -465,3 +465,37 @@ def get_one_menu(category_id: str , menu_id: str , db: Session = Depends(get_db)
             'category_image': usermodel1.category_image
         }
     return {"status": True, "message": "Success" ,"body": offer_data}
+
+
+@router.get('/get_category_by_hotel_id', status_code=status.HTTP_200_OK)
+def get_category_by_hotel_id(hotel_id: str , db: Session = Depends(get_db)):
+
+    check = db.query(models.Create_category).all()
+
+    resp = [] 
+    for category in check:
+        check_list = []
+        data = {
+            'category_id': category.id,
+            'category_name':category.category_name,
+            'category_image':category.category_image,
+            'hotel_menu': check_list
+        }
+        resp.append(data)
+        
+        check_menu = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
+                                                        models.CreateMenu.category_id == category.id).all()
+        
+        for menu in check_menu:
+            data2 = {
+            'id': menu.id,
+            'menu_name': menu.menu_name,
+            'menu_image': menu.menu_image,
+            'price': menu.price,
+            'discription': menu.discription,
+            }
+            check_list.append(data2)
+        
+
+
+    return {'status': True, 'message': 'success', 'body': resp}
