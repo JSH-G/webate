@@ -11,7 +11,7 @@ class HotelDetail(BaseModel):
     name: str
     class Config:
         orm_mode = True
-
+        
 class UserDetail(BaseModel):
     name: str
     class Config:
