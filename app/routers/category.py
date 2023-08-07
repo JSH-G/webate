@@ -93,6 +93,3 @@ def delete_category(dell: raitings.DeleteCategory ,db: Session = Depends(get_db)
     db.commit()
 
     return {'status': True, 'message': 'Successfully, Delete category now no data against this category is deleted(included menu as well)'}
-
-
-
