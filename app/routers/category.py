@@ -66,6 +66,9 @@ def update_category_image(category_id: str = Form(...), image: UploadFile = File
 
     return {'status': True, 'message': 'Successfully, Category Image update'}
 
+
+
+
 @router.put('/update_category_name', status_code=status.HTTP_200_OK)
 def update_category_name(add: raitings.UpdateCategoryName ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
