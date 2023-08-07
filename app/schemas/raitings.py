@@ -30,3 +30,10 @@ class Raiting(BaseModel):
 class UpdateRaiting(BaseModel):
     rating: float
     comment: Optional[str] = None
+
+class UpdateCategoryName(BaseModel):
+    id: str
+    category_name: str
+
+class DeleteCategory(BaseModel):
+    id: str
