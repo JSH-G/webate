@@ -134,7 +134,7 @@ def get_hotel_offer(db: Session = Depends(get_db),current_user: int = Depends(oa
 
         if not usermodel:
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": " Sorry! sDoes not currently have any offer available."})
+                            content={"status": False, "message": " Sorry! Does not currently have any offer available."})
         tz = pytz.timezone('Europe/Athens')
         remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
         days, seconds = divmod(remaining_time.seconds, 86400)
