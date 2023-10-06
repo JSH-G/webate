@@ -17,38 +17,38 @@ router= APIRouter(
 )
 
 
-@router.post('/notification', status_code=status.HTTP_200_OK)
-def notification(hotel_ids: List[str] = Form(...), db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+# @router.post('/notification', status_code=status.HTTP_200_OK)
+# def notification(hotel_ids: List[str] = Form(...), db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-    check_array = hotel_ids[0].split(',')
+#     check_array = hotel_ids[0].split(',')
 
-    resp = []
-    for hotel_id in check_array:
-        check_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel_id,
-                                                                models.Favorite_Hotel.user_id == current_user.id).first()
+#     resp = []
+#     for hotel_id in check_array:
+#         check_favorite = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == hotel_id,
+#                                                                 models.Favorite_Hotel.user_id == current_user.id).first()
         
-        if check_favorite:
+#         if check_favorite:
 
-            supermodel = True
-        else:
-            supermodel = False
+#             supermodel = True
+#         else:
+#             supermodel = False
         
-        check_pro = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id,
-                                                        models.Hotel_Sign_up.is_pro == True).first()
-        if check_pro:
+#         check_pro = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == hotel_id,
+#                                                         models.Hotel_Sign_up.is_pro == True).first()
+#         if check_pro:
 
-            supermodel1 = True
-        else:
-            supermodel1 = False
+#             supermodel1 = True
+#         else:
+#             supermodel1 = False
         
-        data = {
-            'hotel_id': hotel_id,
-            'is_favorite': supermodel,
-            'hotel_upgrade': supermodel1
-        }
-        resp.append(data)
+#         data = {
+#             'hotel_id': hotel_id,
+#             'is_favorite': supermodel,
+#             'hotel_upgrade': supermodel1
+#         }
+#         resp.append(data)
 
-    return {'status': True, 'message': 'success', 'body': resp}
+#     return {'status': True, 'message': 'success', 'body': resp}
 
 @router.get('/get_hotel_info', status_code=status.HTTP_200_OK)
 def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
@@ -116,6 +116,7 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         data = []
+        offers = []
         respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
@@ -131,7 +132,8 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             'favorite' : usermodel3,
             'rate_this_hotel': usermodel4,
             'rating_total': rating_total,
-            'rating_average': round(rating_average, 1)
+            'rating_average': round(rating_average, 1),
+            'hotel_offers': offers
         }
         response.append(respons)
 
@@ -142,6 +144,21 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
                 'image': image.image
             }
             data.append(image_data)
+        check_offers = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel.id).order_by(models.Create_Offer.created_at.desc()).limit(2)
+        for offer in check_offers:
+            offer_data = {
+                'id': offer.id,
+                'name': offer.name,
+                'offer_on': offer.offer_on,
+                'price': offer.price,
+                'closing': offer.closing,
+                'discription': offer.discription,
+                'offer_image': offer.offer_image,
+                'discount': offer.discount,
+                'is_unlimited': offer.is_unlimited,
+                'created_at': offer.created_at,
+            }
+            offers.append(offer_data)
 
     return {"status": True,"message":"Success","body":response}
 
@@ -157,6 +174,7 @@ def get_all_hotel(db: Session = Depends(get_db)):
         rating_total = sum(rating.rating for rating in ratings) if ratings else 0
         rating_average = rating_total / len(ratings) if ratings else 0
         data = []
+        offers = []
         respons = {
             'id': hotel.id,
             'hotel_name': hotel.name,
@@ -169,8 +187,11 @@ def get_all_hotel(db: Session = Depends(get_db)):
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
             'upgrade': hotel.is_pro,
+            'favorite' : False,
+            'rate_this_hotel': False,
             'rating_total': rating_total,
-            'rating_average': round(rating_average, 1)
+            'rating_average': round(rating_average, 1),
+            'hotel_offers': offers
         }
         response.append(respons)
 
@@ -181,6 +202,21 @@ def get_all_hotel(db: Session = Depends(get_db)):
                 'image': image.image
             }
             data.append(image_data)
+        check_offers = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel.id).order_by(models.Create_Offer.created_at.desc()).limit(2)
+        for offer in check_offers:
+            offer_data = {
+                'id': offer.id,
+                'name': offer.name,
+                'offer_on': offer.offer_on,
+                'price': offer.price,
+                'closing': offer.closing,
+                'discription': offer.discription,
+                'offer_image': offer.offer_image,
+                'discount': offer.discount,
+                'is_unlimited': offer.is_unlimited,
+                'created_at': offer.created_at,
+            }
+            offers.append(offer_data)
 
     return {"status": True,"message":"Success","body":response}
 
@@ -203,12 +239,12 @@ def get_restaurant_offer(hotel_id: str, db: Session = Depends(get_db)):
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "hotel does not currently have any offers available."})
         
-        tz = pytz.timezone('Europe/Athens')
-        remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
-        days, seconds = divmod(remaining_time.seconds, 86400)
-        hours, seconds = divmod(seconds, 3600)
-        minutes, seconds = divmod(seconds, 60)
-        remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+        # tz = pytz.timezone('Europe/Athens')
+        # remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
+        # days, seconds = divmod(remaining_time.seconds, 86400)
+        # hours, seconds = divmod(seconds, 3600)
+        # minutes, seconds = divmod(seconds, 60)
+        # remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
 
         offer_data = {
             'id': usermodel.id,
@@ -219,7 +255,7 @@ def get_restaurant_offer(hotel_id: str, db: Session = Depends(get_db)):
             'discription': usermodel.discription,
             'offer_image': usermodel.offer_image,
             'discount': usermodel.discount,
-            'end_date': remaining_time_str,
+            # 'end_date': remaining_time_str,
             # 'last_scan': usermodel2,
             'is_unlimited': usermodel.is_unlimited,
             'created_at': usermodel.created_at,
@@ -238,12 +274,12 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
                             content={"status": False, "message": "Hotel does not currently have any offers available."})
     
 
-    tz = pytz.timezone('Europe/Athens')
-    remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
-    days, seconds = divmod(remaining_time.seconds, 86400)
-    hours, seconds = divmod(seconds, 3600)
-    minutes, seconds = divmod(seconds, 60)
-    remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+    # tz = pytz.timezone('Europe/Athens')
+    # remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
+    # days, seconds = divmod(remaining_time.seconds, 86400)
+    # hours, seconds = divmod(seconds, 3600)
+    # minutes, seconds = divmod(seconds, 60)
+    # remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
 
     offer_data = {
             'id': usermodel.id,
@@ -254,7 +290,7 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
             'discription': usermodel.discription,
             'offer_image': usermodel.offer_image,
             'discount': usermodel.discount,
-            'end_date': remaining_time_str,
+            # 'end_date': remaining_time_str,
             # 'last_scan': usermodel2,
             'is_unlimited': usermodel.is_unlimited,
             'created_at': usermodel.created_at,
