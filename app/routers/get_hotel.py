@@ -296,6 +296,8 @@ def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(g
     
 
 
+
+
 @router.get('/get_resturant_event', status_code=status.HTTP_200_OK)
 def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
