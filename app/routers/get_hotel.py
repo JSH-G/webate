@@ -518,6 +518,4 @@ def get_category_by_hotel_id(hotel_id: str , db: Session = Depends(get_db)):
             }
             check_list.append(data2)
         
-
-
     return {'status': True, 'message': 'success', 'body': resp}
