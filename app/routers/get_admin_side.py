@@ -14,6 +14,21 @@ router= APIRouter(
     tags=['Admin Side Hotel']
 )
 
+
+@router.post("/top_hotel", status_code=status.HTTP_200_OK)
+def top_hotel(like: hotel.Hotel, db: Session = Depends(get_db)):
+    
+    post = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.id == like.hotel_id)
+    
+    if not post.first():
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, 
+            content={"status": False, "message": "This hotel not exist"})
+    
+    post.update({'is_top': True}, synchronize_session=False)
+    db.commit()
+
+    return {"status":True, "message": "Congratulations, This Restaurant successfully now in top list"}
+
 @router.get('/get_all_hotel_admin', status_code=status.HTTP_200_OK)
 def get_all_hotel_admin(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
     hotels = db.query(models.Hotel_Sign_up).order_by(models.Hotel_Sign_up.created_at.desc()).all()

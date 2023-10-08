@@ -78,7 +78,7 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
             'hotel_pic': hotel.hotel_image_url,
             'hotel_logo': hotel.logo_image_url,
             'upgrade': hotel.is_pro,
-            # 'favorite' : usermodel3,
+            'favorite' : False,
             'rating_total': rating_total,
             'rating_average': round(rating_average, 2)
         }
@@ -161,6 +161,47 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
             offers.append(offer_data)
 
     return {"status": True,"message":"Success","body":response}
+
+@router.get('/get_top_hotel', status_code=status.HTTP_200_OK)
+def get_top_hotel(db: Session = Depends(get_db)):
+    hotels = db.query(models.Hotel_Sign_up).filter(models.Hotel_Sign_up.is_top == True).order_by(models.Hotel_Sign_up.update_at.desc()).all()
+    response = []
+    for hotel in hotels:
+        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
+        ratings = db.query(models.Rating).filter(models.Rating.hotel_id == hotel.id).all()
+        rating_total = sum(rating.rating for rating in ratings) if ratings else 0
+        rating_average = rating_total / len(ratings) if ratings else 0
+        data = []
+        respons = {
+            'id': hotel.id,
+            'hotel_name': hotel.name,
+            'hotel_discription': hotel.discription,
+            'email': hotel.email,
+            'gallery': data, 
+            'longitude': hotel.longitude,
+            'latitude':hotel.latitude,
+            'phone_number': hotel.phone_number,
+            'hotel_pic': hotel.hotel_image_url,
+            'hotel_logo': hotel.logo_image_url,
+            'upgrade': hotel.is_pro,
+            'favorite' : False,
+            'rate_this_hotel': False,
+            'rating_total': rating_total,
+            'rating_average': round(rating_average, 1)
+        }
+        response.append(respons)
+
+        check_image = db.query(models.Hotel_Gallery_Image).filter(models.Hotel_Gallery_Image.hotel_id == hotel.id).all()
+        for image in check_image:
+            image_data = {
+                'image_id': image.id,
+                'image': image.image
+            }
+            data.append(image_data)
+
+    return {"status": True,"message":"Success","body":response}
+
+
 
 
 @router.get('/get_all_hotel_without_login', status_code=status.HTTP_200_OK)
@@ -374,7 +415,7 @@ def get_category(db: Session = Depends(get_db)):
     check = db.query(models.Create_category).order_by(models.Create_category.id.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This id is not exist"})
+                            content={"status": False, "message": "This resturant have no category yet"})
     resp = []
     for test in check:
         usermodel = db.query(models.Create_category).filter(models.Create_category.id == test.id).first()

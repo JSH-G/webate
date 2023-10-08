@@ -42,6 +42,7 @@ class Hotel_Sign_up(Base):
     latitude = Column(String, nullable=True, server_default='37.983810')
     opening = Column(String, nullable=True,server_default='---')
     closing = Column(String, nullable=True,server_default='---')
+    is_top = Column(Boolean, server_default='FALSE', nullable=False)
     is_active = Column(Boolean, server_default='FALSE', nullable=False)
     is_verify = Column(Boolean, server_default='FALSE', nullable=False)
     is_online = Column(Boolean, server_default='FALSE', nullable=False)
@@ -187,6 +188,8 @@ class Hotel_Gallery_Image(Base):
     hotel_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete="CASCADE"), primary_key=True, default=uuid.uuid4)
     image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/2023-04-06_15_23_29_299687no-profile-picture-icon_webp.jpg')
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+
 
 
 # class Notification(Base):
