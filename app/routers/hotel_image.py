@@ -74,7 +74,11 @@ def image_pined(image: menu.Image_Pin ,db: Session = Depends(get_db),
     
     check_image.update(image.dict(), synchronize_session=False)
     db.commit()
-    return{"status": True, "message": "image pined successfully."}
+    if image.is_pin == True:
+        return{"status": True, "message": "image pined successfully."}
+    else:
+        return{"status": True, "message": "image un-pined successfully."}
+
 
 
 @router.delete('/delete_image', status_code=status.HTTP_200_OK)

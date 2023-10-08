@@ -3,7 +3,7 @@ from fastapi import UploadFile, status, Depends, APIRouter, Form, File
 from fastapi.responses import JSONResponse
 from app.database import  get_db
 from sqlalchemy.orm import Session
-import boto3, datetime
+import boto3, datetime, requests
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
@@ -69,6 +69,49 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
                         'hotel_name': current_user.name,
                         'hotel_image': current_user.hotel_image_url
                         }
+    
+    # message = f"{current_user.name} created new offer {name}"
+    # res = []
+    # if current_user.is_pro == False:
+    #     get_user = db.query(models.Favorite_Hotel).filter(models.Favorite_Hotel.hotel_id == current_user.id).all()
+
+    #     for user in get_user:
+    #         res.append(user.user_id)
+    #         add = models.Notification(notify_message = message, notify_image = upload_url_logo, notify_send_id = current_user.id,
+    #                                   notify_receive_id = user.user_id)
+    #         db.add(add)
+    #         db.commit()
+    #         db.refresh(add)
+    # else:
+    #     get_all_user = db.query(models.User_Sign_Up).all()
+
+    #     for users in get_all_user:
+    #         res.append(users.id)
+    #         adds = models.Notification(notify_message = message, notify_image = upload_url_logo, notify_send_id = current_user.id,
+    #                                   notify_receive_id = users.id)
+    #         db.add(adds)
+    #         db.commit()
+    #         db.refresh(adds)
+    
+    # url = "https://onesignal.com/api/v1/notifications"
+
+    # payload = {
+    #         # "included_segments": ["All"],
+    #         # "include_player_ids": [f"{device_token}"],
+    #         "include_external_user_ids": res,
+    #         "isIos": True,
+    #         "contents": {
+    #             "en": message
+    #         },
+    #         "name": "INTERNAL_CAMPAIGN_NAME",
+    #         "app_id": config.settings.onesignal_app_id
+    #         }
+    # headers = {
+    #             "accept": "application/json",
+    #             "Authorization": f"Basic {config.settings.onesignal_api_key}",
+    #             "content-type": "application/json"
+    #         }
+    # response = requests.post(url, json=payload, headers=headers)
 
     return {"status": True,"message":"Offer created successfully.","body":responseDic}
 

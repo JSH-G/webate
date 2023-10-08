@@ -194,14 +194,14 @@ class Hotel_Gallery_Image(Base):
 
 
 
-# class Notification(Base):
+class Notification(Base):
 
-#     __tablename__ = "notification"
+    __tablename__ = "notification"
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     notify_message = Column(String, nullable=True)
-#     notify_purpose_id = Column(String, nullable=True)
-#     notify_type = Column(String, nullable=True)
-#     notify_send_id = Column(String, nullable=True)
-#     notify_receive_id = Column(UUID(as_uuid=True), ForeignKey("user_signup.id", ondelete= "CASCADE"), default= uuid.uuid4)
-#     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default=text('now()'))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    notify_message = Column(String, nullable=True)
+    notify_image = Column(String, nullable=True)
+    notify_type = Column(String, nullable=True, server_default='---')
+    notify_send_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete= "CASCADE"), default= uuid.uuid4)
+    notify_receive_id = Column(UUID(as_uuid=True), ForeignKey("user_signup.id", ondelete= "CASCADE"), default= uuid.uuid4)
+    created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default=text('now()'))
