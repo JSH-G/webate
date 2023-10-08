@@ -60,7 +60,7 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
         db.commit()
         db.refresh(new_event)
 
-        responseDic = {'status': True, 'message' : 'offer created', 
+        responseDic = {'status': True, 'message' : 'Event created', 
                             'id': new_event.id,
                             'name_offer': new_event.event_name,
                             'event_date': new_event.event_date,
