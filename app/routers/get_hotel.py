@@ -345,35 +345,35 @@ def get_one_offer(offer_id: str, db: Session = Depends(get_db)):
     return {"status": True, "message": "Success" ,"body": offer_data}
 
 
-@router.get('/get_resturant_menu', status_code=status.HTTP_200_OK)
-def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(get_db)):
+# @router.get('/get_resturant_menu', status_code=status.HTTP_200_OK)
+# def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(get_db)):
 
-    check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
-                                               models.CreateMenu.category_id == category_id).order_by(models.CreateMenu.created_at.desc()).all()
-    if not check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"Menu has not been added yet."})
+    # check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == hotel_id,
+    #                                            models.CreateMenu.category_id == category_id).order_by(models.CreateMenu.created_at.desc()).all()
+    # if not check:
+    #     return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+    #                         content={"status":False, "message":"Menu has not been added yet."})
     
-    resp = []
-    for test in check:
-        usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
-        if not usermodel:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "Hotel does not possess a menu"})
-        usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
-        offer_data = {
-            'id': usermodel.id,
-            'menu_name': usermodel.menu_name,
-            'menu_image': usermodel.menu_image,
-            'price': usermodel.price,
-            'discription': usermodel.discription,
-            'category_name': usermodel1.category_name,
-            'category_image': usermodel1.category_image
-        }
+    # resp = []
+    # for test in check:
+    #     usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
+    #     if not usermodel:
+    #         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+    #                         content={"status": False, "message": "Hotel does not possess a menu"})
+    #     usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
+    #     offer_data = {
+    #         'id': usermodel.id,
+    #         'menu_name': usermodel.menu_name,
+    #         'menu_image': usermodel.menu_image,
+    #         'price': usermodel.price,
+    #         'discription': usermodel.discription,
+    #         'category_name': usermodel1.category_name,
+    #         'category_image': usermodel1.category_image
+    #     }
     
-        resp.append(offer_data)
+    #     resp.append(offer_data)
 
-    return {"status": True, "message": "Success" ,"body": resp}
+    # return {"status": True, "message": "Success" ,"body": resp}
     
 
 
@@ -486,7 +486,8 @@ def get_favorite_hotel(db: Session = Depends(get_db), current_user: int = Depend
         for image in check_image:
             image_data = {
                 'image_id': image.id,
-                'image': image.image
+                'image': image.image,
+                'pined': image.is_pin
             }
             data.append(image_data)
 
