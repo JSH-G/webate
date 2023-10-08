@@ -148,7 +148,7 @@ def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int 
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"You are not able to perform this action"})
     
-    dell.update({'is_active': True},synchronize_session=False)
+    dell.update({'is_verify': True},synchronize_session=False)
     db.commit()
 
     return {"status":True ,"message":"Event has been successfully deleted."}

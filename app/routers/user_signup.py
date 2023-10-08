@@ -259,4 +259,4 @@ def update_profile(up : user.Update_Name , db: Session = Depends(get_db), curren
     user_account.update(up.dict(), synchronize_session=False)
     db.commit()
 
-    return {'status': True, 'message': 'Your account deleted successfully'}
+    return {'status': True, 'message': 'Your profile updated successfully'}
