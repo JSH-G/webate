@@ -6,10 +6,11 @@ from pydantic.types import conint
 
 
 class OfferUpdate(BaseModel):
+    id: str
     name: str
     offer_on: str
-    opening: str
-    closing: str
+    opening: datetime
+    closing: datetime
     price: str
     discription: str
     discount: str

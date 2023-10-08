@@ -86,7 +86,8 @@ def get_hotel_info(hotel_id: str, db: Session = Depends(get_db)):
     for image in check_image:
             image_data = {
                 'image_id': image.id,
-                'image': image.image
+                'image': image.image,
+                'pined': image.is_pin
             }
             data.append(image_data)
 
@@ -141,7 +142,8 @@ def get_all_hotel(db: Session = Depends(get_db), current_user: int = Depends(oau
         for image in check_image:
             image_data = {
                 'image_id': image.id,
-                'image': image.image
+                'image': image.image,
+                'pined': image.is_pin
             }
             data.append(image_data)
         check_offers = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel.id).order_by(models.Create_Offer.created_at.desc()).limit(2)
@@ -195,7 +197,8 @@ def get_top_hotel(db: Session = Depends(get_db)):
         for image in check_image:
             image_data = {
                 'image_id': image.id,
-                'image': image.image
+                'image': image.image,
+                'pined': image.is_pin
             }
             data.append(image_data)
 
@@ -240,7 +243,8 @@ def get_all_hotel(db: Session = Depends(get_db)):
         for image in check_image:
             image_data = {
                 'image_id': image.id,
-                'image': image.image
+                'image': image.image,
+                'pined': image.is_pin
             }
             data.append(image_data)
         check_offers = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == hotel.id).order_by(models.Create_Offer.created_at.desc()).limit(2)

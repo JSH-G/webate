@@ -4,7 +4,6 @@ import uuid
 
 class FavoriteHotel(BaseModel):
     hotel_id: str
-    dir:  bool = True
 
 class HotelDetail(BaseModel):
     name: str

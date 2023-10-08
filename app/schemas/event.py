@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 
 class EventOut(BaseModel):
+    id: str
     event_name: str
     event_time: time
     event_end_time: time

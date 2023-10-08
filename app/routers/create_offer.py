@@ -73,26 +73,50 @@ def create_offer(name: str = Form(...),offer_on: str = Form(...),offer_image: Up
     return {"status": True,"message":"Offer created successfully.","body":responseDic}
 
 @router.put('/update_offer', status_code=status.HTTP_200_OK)
-def update_offer(offer_id : str, update: offer.OfferUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+def update_offer(update: offer.OfferUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
-    updater = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id)
+    updater = db.query(models.Create_Offer).filter(models.Create_Offer.id == update.id)
     check = updater.first()
 
     if not check:
-
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This offer not exist"})
     
-    user_check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id,
-                                                      models.Create_Offer.id == offer_id).first()
-    if not user_check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You are not able to perform this action"})
+    # user_check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id,
+    #                                                   models.Create_Offer.id == update.id).first()
+    # if not user_check:
+    #     return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+    #                         content={"status":False, "message":"You are not able to perform this action"})
     
     
     updater.update(update.dict(), synchronize_session=False)
     db.commit()
     return {"status":True ,"message":"Offer has been updated successfully."}
+
+@router.put('/update_offer_image', status_code=status.HTTP_200_OK)
+def update_offer_image(offer_id: str = Form(...), offer_image: UploadFile = File(...), db: Session = Depends(get_db), 
+                       current_user: int = Depends(oauth2.get_current_hotel)):
+
+    updater = db.query(models.Create_Offer).filter(models.Create_Offer.id == offer_id)
+    check = updater.first()
+
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(offer_image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(offer_image.file, modified_filename)
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
+
+    updater.update({"offer_image": upload_url}, synchronize_session=False)
+    db.commit()
+
+    return {"status":True ,"message":"Offer has been updated successfully."}
+
 
 @router.delete('/delete_offer', status_code=status.HTTP_200_OK)
 def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -120,42 +144,44 @@ def delete_offer(offer_id: str,db: Session = Depends(get_db), current_user: int 
     return {"status":True ,"message":"Successfully deleted the offer"}
 
 
-@router.get('/get_hotel_offer', status_code=status.HTTP_200_OK)
-def get_hotel_offer(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
 
-    check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id).all()
 
-    if not check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This hotel does not exist"})
+# @router.get('/get_hotel_offer', status_code=status.HTTP_200_OK)
+# def get_hotel_offer(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
 
-    resp = []
-    for usermodel in check:
+#     check = db.query(models.Create_Offer).filter(models.Create_Offer.hotel_id == current_user.id).all()
 
-        if not usermodel:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": " Sorry! Does not currently have any offer available."})
-        tz = pytz.timezone('Europe/Athens')
-        remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
-        days, seconds = divmod(remaining_time.seconds, 86400)
-        hours, seconds = divmod(seconds, 3600)
-        minutes, seconds = divmod(seconds, 60)
-        remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+#     if not check:
+#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": "This hotel does not exist"})
 
-        offer_data = {
-            'id': usermodel.id,
-            'name': usermodel.name,
-            'offer_on': usermodel.offer_on,
-            'price': usermodel.price,
-            'closing': usermodel.closing,
-            'discription': usermodel.discription,
-            'offer_image': usermodel.offer_image,
-            'discount': usermodel.discount,
-            'end_date': remaining_time_str,
-            'is_unlimited': usermodel.is_unlimited,
-            'created_at': usermodel.created_at,
-        }
-        resp.append(offer_data)
+#     resp = []
+#     for usermodel in check:
 
-    return {"status": True, "message": "Success" ,"body": resp}
+#         if not usermodel:
+#             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": " Sorry! Does not currently have any offer available."})
+#         tz = pytz.timezone('Europe/Athens')
+#         remaining_time = usermodel.closing.astimezone(tz) - datetime.now(tz)
+#         days, seconds = divmod(remaining_time.seconds, 86400)
+#         hours, seconds = divmod(seconds, 3600)
+#         minutes, seconds = divmod(seconds, 60)
+#         remaining_time_str = f"{days} days {hours} hours {minutes} minutes"
+
+#         offer_data = {
+#             'id': usermodel.id,
+#             'name': usermodel.name,
+#             'offer_on': usermodel.offer_on,
+#             'price': usermodel.price,
+#             'closing': usermodel.closing,
+#             'discription': usermodel.discription,
+#             'offer_image': usermodel.offer_image,
+#             'discount': usermodel.discount,
+#             'end_date': remaining_time_str,
+#             'is_unlimited': usermodel.is_unlimited,
+#             'created_at': usermodel.created_at,
+#         }
+#         resp.append(offer_data)
+
+#     return {"status": True, "message": "Success" ,"body": resp}
 

@@ -8,6 +8,7 @@ import boto3, datetime
 from datetime import datetime
 from app import oauth2, config
 from app.models import models
+from app.schemas import menu
 
 router= APIRouter(
     tags=['Hotel Gallery']
@@ -60,6 +61,21 @@ def upload_images(
 
     return {'status': True, 'message': 'Success', 'body': resp}
 
+@router.put('/image_pined', status_code=status.HTTP_200_OK)
+def image_pined(image: menu.Image_Pin ,db: Session = Depends(get_db),
+                        current_user: int = Depends(oauth2.get_current_hotel)):
+    
+    check_image = db.query(models.Hotel_Gallery_Image).filter(models.Hotel_Gallery_Image.id == image.id)
+
+    index = check_image.first()
+    if not index:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "This image does not exist"})
+    
+    check_image.update(image.dict(), synchronize_session=False)
+    db.commit()
+    return{"status": True, "message": "image pined successfully."}
+
 
 @router.delete('/delete_image', status_code=status.HTTP_200_OK)
 def delete_image(image_id: str,db: Session = Depends(get_db),
@@ -80,4 +96,6 @@ def delete_image(image_id: str,db: Session = Depends(get_db),
     db.commit()
 
     return{"status": True, "message": "image has been successfully deleted."}
+
+
 

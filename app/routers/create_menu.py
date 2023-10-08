@@ -70,10 +70,10 @@ def create_menu(name: str = Form(...),price: str = Form(...),menu_image: UploadF
     return responseDic
 
 @router.put('/update_menu', status_code=status.HTTP_200_OK)
-def update_menu(menu_id : str, update: menu.MenuUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+def update_menu(update: menu.MenuUpdate ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
-    updte = db.query(models.CreateMenu).filter(models.CreateMenu.id == menu_id)
-    check = updte.first()
+    check_menu = db.query(models.CreateMenu).filter(models.CreateMenu.id == update.id)
+    check = check_menu.first()
 
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
@@ -85,16 +85,44 @@ def update_menu(menu_id : str, update: menu.MenuUpdate ,db: Session = Depends(ge
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This category is not found"})
     
-    user_check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
-                                                      models.CreateMenu.id == menu_id).first()
-    if not user_check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You are not able to perform this action"})
+    # user_check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
+    #                                                   models.CreateMenu.id == menu_id).first()
+    # if not user_check:
+    #     return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+    #                         content={"status":False, "message":"You are not able to perform this action"})
     
     
-    updte.update(update.dict(), synchronize_session=False)
+    check_menu.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status": True ,"message":"Menu has been successfully updated"}
+
+    return {"status": True ,"message":"Menu has been updated successfully."}
+
+
+@router.put('/update_menu_image', status_code=status.HTTP_200_OK)
+def update_menu_image(menu_id: str = Form(...), menu_image: UploadFile = File(...), db: Session = Depends(get_db), 
+                       current_user: int = Depends(oauth2.get_current_hotel)):
+
+    updater = db.query(models.CreateMenu).filter(models.CreateMenu.id == menu_id)
+    check = updater.first()
+
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(menu_image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(menu_image.file, modified_filename)
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
+
+    updater.update({"menu_image": upload_url}, synchronize_session=False)
+    db.commit()
+
+    return {"status":True ,"message":"Menu has been updated successfully."}
+
+
 
 @router.delete('/delete_menu', status_code=status.HTTP_200_OK)
 def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
@@ -113,7 +141,6 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
     if not user_check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"You are not able to perform this action"})
-    
 
     dell.delete(synchronize_session=False)
     db.commit()
@@ -121,32 +148,34 @@ def delete_menu(menu_id: str,db: Session = Depends(get_db), current_user: int = 
     return {"Status": "Menu has been successfully deleted."}
 
 
-@router.get('/get_hotel_menu', status_code=status.HTTP_200_OK)
-def get_hotel_menu(category_id: str , db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
 
-    check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
-                                               models.CreateMenu.category_id == category_id).all()
-    if not check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"Sorry! Menu has not been added yet"})
-    
-    resp = []
-    for test in check:
-        usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
-        if not usermodel:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "Sorry, this hotel has no menu"})
-        usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
-        offer_data = {
-            'id': usermodel.id,
-            'menu_name': usermodel.menu_name,
-            'menu_image': usermodel.menu_image,
-            'price': usermodel.price,
-            'discription': usermodel.discription,
-            'category_name': usermodel1.category_name,
-            'category_image': usermodel1.category_image
-        }
-    
-        resp.append(offer_data)
 
-    return {"status": True, "message": "Success" ,"body": resp}
+# @router.get('/get_hotel_menu', status_code=status.HTTP_200_OK)
+# def get_hotel_menu(category_id: str , db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
+
+#     check = db.query(models.CreateMenu).filter(models.CreateMenu.hotel_id == current_user.id,
+#                                                models.CreateMenu.category_id == category_id).all()
+#     if not check:
+#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status":False, "message":"Sorry! Menu has not been added yet"})
+    
+#     resp = []
+#     for test in check:
+#         usermodel = db.query(models.CreateMenu).filter(models.CreateMenu.id == test.id).first()
+#         if not usermodel:
+#             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": "Sorry, this hotel has no menu"})
+#         usermodel1 = db.query(models.Create_category).filter(models.Create_category.id == test.category_id).first()
+#         offer_data = {
+#             'id': usermodel.id,
+#             'menu_name': usermodel.menu_name,
+#             'menu_image': usermodel.menu_image,
+#             'price': usermodel.price,
+#             'discription': usermodel.discription,
+#             'category_name': usermodel1.category_name,
+#             'category_image': usermodel1.category_image
+#         }
+    
+#         resp.append(offer_data)
+
+#     return {"status": True, "message": "Success" ,"body": resp}

@@ -6,6 +6,7 @@ from pydantic.types import conint
 
     
 class MenuUpdate(BaseModel):
+    id: str
     menu_name: str
     price: str
     discription: str
@@ -37,3 +38,7 @@ class MenuOutSingel(BaseModel):
     discription: str
     class Config:
         orm_mode = True
+
+class Image_Pin(BaseModel):
+    id: str
+    is_pin: bool

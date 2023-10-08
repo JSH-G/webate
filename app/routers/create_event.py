@@ -84,26 +84,50 @@ def create_event(event_name: str = Form(...),start_time: time = Form(...),end_ti
 
 
 @router.put('/update_event', status_code=status.HTTP_200_OK)
-def update_event(event_id : str, update: event.EventOut ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
+def update_event(update: event.EventOut ,db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
-    updte = db.query(models.Create_Event).filter(models.Create_Event.id == event_id)
-    check = updte.first()
+    event = db.query(models.Create_Event).filter(models.Create_Event.id == update.id)
+    check = event.first()
 
     if not check:
-
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status":False, "message":"This event does not exist"})
     
-    user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
-                                                      models.Create_Event.id == event_id).first()
+    # user_check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id,
+    #                                                   models.Create_Event.id == event_id).first()
     
-    if not user_check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status":False, "message":"You are not able to perform this action."})
+    # if not user_check:
+    #     return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+    #                         content={"status":False, "message":"You are not able to perform this action."})
     
-    updte.update(update.dict(), synchronize_session=False)
+    event.update(update.dict(), synchronize_session=False)
     db.commit()
-    return {"status":True ,"message":"Event has been successfully updated"}
+    return {"status":True ,"message":"Event has been updated successfully."}
+
+@router.put('/update_event_image', status_code=status.HTTP_200_OK)
+def update_event_image(event_id: str = Form(...), event_image: UploadFile = File(...), db: Session = Depends(get_db), 
+                       current_user: int = Depends(oauth2.get_current_hotel)):
+
+    updater = db.query(models.Create_Event).filter(models.Create_Event.id == event_id)
+    check = updater.first()
+
+    if not check:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status":False, "message":"This offer not exist"})
+
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(event_image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(event_image.file, modified_filename)
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
+
+    updater.update({"event_image_vedio": upload_url}, synchronize_session=False)
+    db.commit()
+
+    return {"status":True ,"message":"Event has been updated successfully."}
+
 
 
 @router.delete('/delete_event', status_code=status.HTTP_200_OK)
@@ -131,34 +155,34 @@ def delete_event(event_id: str,db: Session = Depends(get_db), current_user: int 
 
 
 
-@router.get('/get_hotel_event', status_code=status.HTTP_200_OK)
-def get_hotel_event(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
+# @router.get('/get_hotel_event', status_code=status.HTTP_200_OK)
+# def get_hotel_event(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_hotel)):
 
-    check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id).all()
-    if not check:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "This ID does not exist"})
+#     check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == current_user.id).all()
+#     if not check:
+#         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": "This ID does not exist"})
     
-    resp = []
-    for test in check:
-        usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
-        if not usermodel:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                            content={"status": False, "message": "Sorry, you have no event"})
-        offer_data = {
-            'id': usermodel.id,
-            'event_name': usermodel.event_name,
-            'event_time': usermodel.event_time,
-            'event_end_time': usermodel.event_end_time,
-            'event_image_vedio': usermodel.event_image_vedio,
-            'event_date': usermodel.event_date,
-            'longitude':usermodel.longitude,
-            'latitude':usermodel.latitude,
-            'event_discription': usermodel.discription,
-            'is_active': usermodel.is_active
+#     resp = []
+#     for test in check:
+#         usermodel = db.query(models.Create_Event).filter(models.Create_Event.id == test.id).first()
+#         if not usermodel:
+#             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+#                             content={"status": False, "message": "Sorry, you have no event"})
+#         offer_data = {
+#             'id': usermodel.id,
+#             'event_name': usermodel.event_name,
+#             'event_time': usermodel.event_time,
+#             'event_end_time': usermodel.event_end_time,
+#             'event_image_vedio': usermodel.event_image_vedio,
+#             'event_date': usermodel.event_date,
+#             'longitude':usermodel.longitude,
+#             'latitude':usermodel.latitude,
+#             'event_discription': usermodel.discription,
+#             'is_active': usermodel.is_active
    
-        }
+#         }
     
-        resp.append(offer_data)
+#         resp.append(offer_data)
 
-    return {"status": True, "message": "Success" ,"body": resp}
+#     return {"status": True, "message": "Success" ,"body": resp}

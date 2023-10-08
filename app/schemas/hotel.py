@@ -10,7 +10,7 @@ class CreateHotel(BaseModel):
     name: str
     email: EmailStr
     discription: str
-    postal_code: str
+    phone_number: str
     longitude: str
     latitude: str
     postal_code: str

@@ -182,11 +182,13 @@ class Contact_Us(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
 class Hotel_Gallery_Image(Base):
+    
     __tablename__ = "hotel_gallery_image"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     hotel_id = Column(UUID(as_uuid=True), ForeignKey("hotel_signup.id", ondelete="CASCADE"), primary_key=True, default=uuid.uuid4)
     image = Column(String, nullable=True, server_default='https://codedeskstudio.s3.ap-northeast-1.amazonaws.com/2023-04-06_15_23_29_299687no-profile-picture-icon_webp.jpg')
+    is_pin = Column(Boolean, server_default='FALSE', nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
 
