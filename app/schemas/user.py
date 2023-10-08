@@ -31,3 +31,6 @@ class Otp_Verification(BaseModel):
 class Update_Password(BaseModel):
     email: EmailStr
     password: str
+
+class Update_Name(BaseModel):
+    name: str

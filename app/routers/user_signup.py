@@ -230,3 +230,33 @@ def update_password( pss: user.Update_Password, db: Session = Depends(get_db)):
     db.commit()
 
     return { "status": True ,"message": "Congratulations! Your password has been successfully changed."}
+
+
+@router.delete('/delete_user', status_code=status.HTTP_200_OK)
+def delete_user( db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    delete_user_account = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.id == current_user.id)
+
+    if not delete_user_account:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "You are not able to perform this action"})
+    
+    delete_user_account.delete(synchronize_session=False)
+    db.commit()
+
+    return {'status': True, 'message': 'Your account deleted successfully'}
+
+
+@router.put('/update_profile', status_code=status.HTTP_200_OK)
+def update_profile(up : user.Update_Name , db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    user_account = db.query(models.User_Sign_Up).filter(models.User_Sign_Up.id == current_user.id)
+
+    if not user_account:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
+                            content={"status": False, "message": "You are not able to perform this action"})
+    
+    user_account.update(up.dict(), synchronize_session=False)
+    db.commit()
+
+    return {'status': True, 'message': 'Your account deleted successfully'}
