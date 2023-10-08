@@ -383,7 +383,7 @@ def get_resturant_menu(hotel_id: str, category_id: str , db: Session = Depends(g
 def get_resturant_event(hotel_id: str, db: Session = Depends(get_db)):
 
     check = db.query(models.Create_Event).filter(models.Create_Event.hotel_id == hotel_id,
-                                                 models.Create_Event.is_verify == True).order_by(models.Create_Event.created_at.desc()).all()
+                                                 models.Create_Event.is_verify == False).order_by(models.Create_Event.created_at.desc()).all()
     if not check:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
                             content={"status": False, "message": "Hotel does not currently have any events taking place"})
