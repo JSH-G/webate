@@ -24,20 +24,20 @@ client_s3 = boto3.resource(
 
 @router.post('/add_category', status_code=status.HTTP_200_OK)
 def add_category(category_name: str = Form(...), 
-                #  image: UploadFile = File(...), 
+                 image: UploadFile = File(...), 
                  db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_admin)):
 
     add_new:models.Create_category = models.Create_category()
     add_new.category_name = category_name
 
-    # bucket = client_s3.Bucket(S3_BUCKET_NAME)
-    # now = str(datetime.now())
-    # check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
-    # filename, extension = os.path.splitext(image.filename)
-    # modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
-    # bucket.upload_fileobj(image.file, modified_filename)
-    # upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
-    # add_new.category_image = upload_url
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(image.file, modified_filename)
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
+    add_new.category_image = upload_url
     db.add(add_new)
     db.commit()
     db.refresh(add_new)
