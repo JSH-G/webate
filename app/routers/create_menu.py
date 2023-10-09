@@ -23,8 +23,8 @@ client_s3 = boto3.resource(
 )
 
 @router.post('/create_menu', status_code=status.HTTP_200_OK)
-def create_menu(name: str = Form(...),price: str = Form(...), menu_image: str = Form(...),
-                # menu_image: UploadFile = File(...),
+def create_menu(name: str = Form(...),price: str = Form(...),
+                menu_image: UploadFile = File(...),
                 discription: str = Form(...),category_id: str = Form(...),
                 db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_hotel)):
     
@@ -43,15 +43,14 @@ def create_menu(name: str = Form(...),price: str = Form(...), menu_image: str = 
     new_menu.hotel_id = current_user.id
     new_menu.category_id = category_id
 
-    # bucket = client_s3.Bucket(S3_BUCKET_NAME)
-    # now = str(datetime.now())
-    # check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
-    # filename, extension = os.path.splitext(menu_image.filename)
-    # modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
-    # bucket.upload_fileobj(menu_image.file, modified_filename)
-    # upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
-    # new_menu.menu_image = upload_url
-    new_menu.menu_image = menu_image
+    bucket = client_s3.Bucket(S3_BUCKET_NAME)
+    now = str(datetime.now())
+    check = now.replace(".", "_").replace(" ", "_").replace(":", "_")
+    filename, extension = os.path.splitext(menu_image.filename)
+    modified_filename = f"{check}{filename.replace(' ', '_').replace('.', '')}{extension}"
+    bucket.upload_fileobj(menu_image.file, modified_filename)
+    upload_url = f"https://{S3_BUCKET_NAME}.s3.ap-northeast-1.amazonaws.com/{modified_filename}"
+    new_menu.menu_image = upload_url
 
 
     db.add(new_menu)
